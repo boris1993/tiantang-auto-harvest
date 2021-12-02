@@ -1,0 +1,144 @@
+﻿@{
+    ViewData["Title"] = "甜糖星愿自动收取";
+}
+
+<table style="width: 100%;">
+    <tr>
+        <td style="width: 50%; border-right: 1px solid rgba(0,0,0,.1);" >
+            <div class="text-center" style="margin-bottom: 10px;">
+                <h1 class="title">获取Token</h1>
+                <div class="border-top border-bottom border-left border-right" style="padding: 6px; margin: 0 auto; width: 350px; text-align: left;">
+                    <div style="padding-bottom: 10px;">
+                        <label style="width: 80px; text-align: right;">手机号码</label>
+                        <input type="text" id="phone_number" name="phone_number" autocomplete="off" style="width: 110px" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')" />
+                        <input type="button" id="get_sms_code" value="获取手机验证码" onclick="sendSMSCode()" style="width: 130px;" />
+                    </div>
+                    <div style="padding-bottom: 10px;">
+                        <label style="width: 80px; text-align: right;">短信验证码</label>
+                        <input type="text" id="sms_code" name="sms_code" autocomplete="off" style="width: 110px"/>
+                        <input type="button" id="verify_sms_code" value="登录" onclick="verifySMSCode()" style="width: 130px;" />
+                    </div>
+                    <hr style="margin-top: 0" />
+                    <div style="text-align: center;">
+                        当前登录的手机号：<label id="current_phone_number"></label>
+                    </div>
+                </div>
+            </div>
+        </td>
+        <td style="width: 50%;">
+            <div class="text-center" style="margin-bottom: 10px;">
+                <h1 class="title">获取Token</h1>
+                <div class="border-top border-bottom border-left border-right" style="padding: 6px; margin: 0 auto; width: 350px; text-align: left;">
+                    <div style="padding-bottom: 10px;">
+                        <label style="width: 80px; text-align: right;">手机号码</label>
+                        <input type="text" id="phone_number" name="phone_number" autocomplete="off" style="width: 110px" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')" />
+                        <input type="button" id="get_sms_code" value="获取手机验证码" onclick="sendSMSCode()" style="width: 130px;" />
+                    </div>
+                    <div style="padding-bottom: 10px;">
+                        <label style="width: 80px; text-align: right;">短信验证码</label>
+                        <input type="text" id="sms_code" name="sms_code" autocomplete="off" style="width: 110px"/>
+                        <input type="button" id="verify_sms_code" value="登录" onclick="verifySMSCode()" style="width: 130px;" />
+                    </div>
+                    <hr style="margin-top: 0" />
+                    <div>
+                        当前登录的手机号：<label id="current_phone_number"></label>
+                    </div>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<hr />
+
+<script type="text/javascript">
+    function sendSMSCode() {
+        var phoneNumber = document.getElementById('phone_number').value;
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/SendSMS", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({
+            phoneNumber: phoneNumber
+        }));
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                if (xhr.status == 400) {
+                    var responseJson = JSON.parse(xhr.responseText);
+                    var errorMessages = responseJson["errors"]["PhoneNumber"];
+
+                    var alertMessage = "";
+                    for (i = 0; i < errorMessages.length; i++) {
+                        alertMessage += errorMessages[i] + "\n";
+                    }
+
+                    alert(alertMessage);
+                } else if (xhr.status != 200) {
+                    var alertMessage = "服务器出现错误：\n" + xhr.responseText;
+                    alert(alertMessage);
+                }
+            }
+        }
+    }
+
+    function verifySMSCode() {
+        var phoneNumber = document.getElementById('phone_number').value;
+        var smsCode = document.getElementById('sms_code').value;
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/VerifyCode", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({
+            phoneNumber: phoneNumber,
+            otpCode: smsCode
+        }));
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                if (xhr.status == 400) {
+                    var alertMessage = "";
+
+                    var responseJson = JSON.parse(xhr.responseText);
+                    var errorMessages = responseJson["errors"]["PhoneNumber"];
+                    for (i = 0; i < errorMessages.length; i++) {
+                        alertMessage += errorMessages[i] + "\n";
+                    }
+
+                    errorMessages = responseJson["errors"]["OTPCode"];
+                    for (i = 0; i < errorMessages.length; i++) {
+                        alertMessage += errorMessages[i] + "\n";
+                    }
+
+                    alert(alertMessage);
+                } else if (xhr.status != 200) {
+                    var alertMessage = "服务器出现错误：\n" + xhr.responseText;
+                    alert(alertMessage);
+                }
+            }
+        }
+    }
+
+    function getCurrentLogin() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/api/GetLoginInfo", true);
+        xhr.send();
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                var responseText = xhr.responseText;
+                if (xhr.status != 200) {
+                    var alertMessage = "服务器出现错误：\n" + responseText;
+                    alert(alertMessage);
+                    return;
+                }
+
+                var responseJson = JSON.parse(responseText);
+                var currentPhoneNumber = responseJson["phoneNumber"];
+                document.getElementById("current_phone_number").innerHTML = currentPhoneNumber;
+            }
+        }
+    }
+
+    window.onload = function () {
+        getCurrentLogin();
+    }
+</script>
