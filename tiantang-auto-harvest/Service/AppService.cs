@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -90,8 +89,8 @@ namespace tiantang_auto_harvest.Service
 
             if (statusCode != HttpStatusCode.OK)
             {
-                
-                logger.LogError($"验证码发送失败，HTTP返回码 {statusCode} ，错误信息：{errorMessage}");
+
+                logger.LogError($"请求失败，HTTP返回码 {statusCode} ，错误信息：{errorMessage}");
                 throw new ExternalAPICallException(errorMessage, statusCode);
             }
 

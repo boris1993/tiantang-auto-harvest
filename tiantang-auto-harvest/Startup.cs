@@ -34,19 +34,27 @@ namespace tiantang_auto_harvest
             services.AddControllersWithViews();
             services.AddDbContext<TiantangLoginInfoDbContext>(options => options.UseSqlite($"Data Source={AppContext.BaseDirectory}/database.db"));
             services.AddScoped<AppService>();
-            services.AddHttpClient<AppService>(client => {
+            services.AddHttpClient<AppService>(client =>
+            {
                 client.BaseAddress = new Uri(Constants.TiantangBackendURLs.BaseURL);
                 client.Timeout = TimeSpan.FromSeconds(10);
             });
+            services.AddSingleton<TiantangRemoteCallService>();
 
             #region Quartz Configurations
             services.AddSingleton<IJobFactory, QuartzJobFactory>();
             services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
             services.AddSingleton<SigninJob>();
+            services.AddSingleton<HarvestJob>();
             // Will sign in on 03:00 each day
             services.AddSingleton(new JobSchedule(
                 jobType: typeof(SigninJob),
                 cronExpression: "0 0 3 * * ?"
+            ));
+            services.AddSingleton(new JobSchedule(
+                jobType: typeof(HarvestJob),
+                //cronExpression: "0 0 3 * * ?"
+                cronExpression: "0 * * * * ?"
             ));
             services.AddHostedService<QuartzHostedService>();
             #endregion
@@ -64,7 +72,8 @@ namespace tiantang_auto_harvest
                 if (exception is BaseAppException)
                 {
                     statusCode = ((BaseAppException)exception).ResponseStatusCode;
-                } else
+                }
+                else
                 {
                     statusCode = HttpStatusCode.InternalServerError;
                 }

@@ -3,11 +3,9 @@ using Microsoft.Extensions.Logging;
 using Quartz;
 using System;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 using tiantang_auto_harvest.Models;
+using tiantang_auto_harvest.Service;
 
 namespace tiantang_auto_harvest.Jobs
 {
@@ -15,14 +13,14 @@ namespace tiantang_auto_harvest.Jobs
     public class SigninJob : IJob
     {
         private readonly ILogger<SigninJob> logger;
-        private readonly HttpClient httpClient;
         private readonly IServiceProvider serviceProvider;
+        private readonly TiantangRemoteCallService tiantangRemoteCallService;
 
-        public SigninJob(ILogger<SigninJob> logger, HttpClient httpClient, IServiceProvider serviceProvider)
+        public SigninJob(ILogger<SigninJob> logger, IServiceProvider serviceProvider, TiantangRemoteCallService tiantangRemoteCallService)
         {
             this.logger = logger;
-            this.httpClient = httpClient;
             this.serviceProvider = serviceProvider;
+            this.tiantangRemoteCallService = tiantangRemoteCallService;
         }
 
         public Task Execute(IJobExecutionContext context)
@@ -41,34 +39,7 @@ namespace tiantang_auto_harvest.Jobs
                 logger.LogInformation($"将签到甜糖账号 {tiantangLoginInfo.PhoneNumber}");
 
                 Uri uri = new Uri(Constants.TiantangBackendURLs.DailyCheckInURL);
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage
-                {
-                    Method = HttpMethod.Post,
-                    RequestUri = uri,
-                    Headers =
-                {
-                    {  HttpRequestHeader.Authorization.ToString(), tiantangLoginInfo.AccessToken }
-                }
-                };
-
-                HttpResponseMessage response = httpClient.SendAsync(httpRequestMessage).Result;
-                HttpStatusCode httpStatusCode = response.StatusCode;
-                string responseBody = response.Content.ReadAsStringAsync().Result;
-                JsonDocument responseJson = JsonDocument.Parse(responseBody);
-                int errCode = responseJson.RootElement.GetProperty("errCode").GetInt32();
-                string errorMessage = responseJson.RootElement.GetProperty("msg").GetString();
-
-                if (httpStatusCode != HttpStatusCode.OK)
-                {
-                    logger.LogError($"签到失败，状态码 {httpStatusCode}，错误信息：{errorMessage}");
-                    return Task.CompletedTask;
-                }
-
-                if (errCode != 0)
-                {
-                    logger.LogError($"甜糖API返回码不为0，错误信息：{errorMessage}");
-                    return Task.CompletedTask;
-                }
+                var responseJson = tiantangRemoteCallService.DailyCheckIn(tiantangLoginInfo.AccessToken);
 
                 int earnedScore = responseJson.RootElement.GetProperty("data").GetInt32();
                 logger.LogInformation($"签到成功，获得{earnedScore}点星愿");
