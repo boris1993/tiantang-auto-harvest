@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Quartz;
 using System;
 using System.Collections.Generic;
@@ -19,6 +21,8 @@ namespace tiantang_auto_harvest.Jobs
         private readonly ILogger<HarvestJob> logger;
         private readonly IServiceProvider serviceProvider;
         private readonly TiantangRemoteCallService tiantangRemoteCallService;
+
+        public EventHandler ScoresLoadedEventHandler;
 
         public HarvestJob(ILogger<HarvestJob> logger, IServiceProvider serviceProvider, TiantangRemoteCallService tiantangRemoteCallService)
         {
@@ -42,6 +46,8 @@ namespace tiantang_auto_harvest.Jobs
 
                 logger.LogInformation($"将收取甜糖账号 {tiantangLoginInfo.PhoneNumber}");
                 var tiantangScores = new TiantangScores();
+                tiantangScores.AccessToken = tiantangLoginInfo.AccessToken;
+
                 JsonDocument responseJson;
                 try
                 {
@@ -75,22 +81,74 @@ namespace tiantang_auto_harvest.Jobs
                     logger.LogInformation($"节点ID {nodeId} 可收取 {score} 点星愿");
                     tiantangScores.DeviceScores[nodeId] = score;
                 }
+
+                // 星愿检查完成后发送事件
+                ScoresLoadedEventHandler?.Invoke(this, tiantangScores);
             }
 
             return Task.CompletedTask;
         }
+    }
 
-        public class TiantangScores
+    public class ScoreLoadedEventHandler
+    {
+        private readonly ILogger<ScoreLoadedEventHandler> logger;
+        private readonly TiantangRemoteCallService tiantangRemoteCallService;
+        public ScoreLoadedEventHandler(ILogger<ScoreLoadedEventHandler> logger, TiantangRemoteCallService tiantangRemoteCallService)
         {
-            /// <summary>
-            /// 推广获得的点数
-            /// </summary>
-            public int PromotionScore { get; set; }
-
-            /// <summary>
-            /// Key是节点ID，value是此节点当日可收取的点数
-            /// </summary>
-            public Dictionary<string, int> DeviceScores { get; set; }
+            this.logger = logger;
+            this.tiantangRemoteCallService = tiantangRemoteCallService;
         }
+
+        public void HandleScoresLoadedEvent(object sender, EventArgs eventArgs)
+        {
+            var tiantangScores = (TiantangScores)eventArgs;
+            var accessToken = tiantangScores.AccessToken;
+
+            var promoteScore = tiantangScores.PromotionScore;
+            if (promoteScore <= 0)
+            {
+                logger.LogInformation("无可收取的推广星愿");
+            }
+            else
+            {
+                logger.LogInformation($"正在收取{tiantangScores.PromotionScore}点推广星愿");
+                tiantangRemoteCallService.HarvestPromotionScore(tiantangScores.PromotionScore, tiantangScores.AccessToken);
+            }
+
+            var deviceScores = tiantangScores.DeviceScores;
+            tiantangRemoteCallService.HarvestDeviceScore(deviceScores, accessToken);
+        }
+    }
+
+    public static class ScoreLoadedEventHandlerExtensions
+    {
+        public static void UseScoreLoadedEventHandler(this IApplicationBuilder app)
+        {
+            var serviceProvider = app.ApplicationServices;
+            var harvestJob = serviceProvider.GetService<HarvestJob>();
+            // 监听星愿检查完成事件
+            harvestJob.ScoresLoadedEventHandler += (sender, args) =>
+            {
+                var handler = serviceProvider.GetService<ScoreLoadedEventHandler>();
+                handler.HandleScoresLoadedEvent(sender, args);
+            };
+            
+        }
+    }
+
+    public class TiantangScores : EventArgs
+    {
+        public string AccessToken { get; set; }
+
+        /// <summary>
+        /// 推广获得的点数
+        /// </summary>
+        public int PromotionScore { get; set; }
+
+        /// <summary>
+        /// Key是节点ID，value是此节点当日可收取的点数
+        /// </summary>
+        public Dictionary<string, int> DeviceScores = new Dictionary<string, int>();
     }
 }

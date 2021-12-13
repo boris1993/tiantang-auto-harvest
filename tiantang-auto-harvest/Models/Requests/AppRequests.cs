@@ -22,4 +22,10 @@ namespace tiantang_auto_harvest.Models.Requests
         [StringLength(6, MinimumLength = 6, ErrorMessage = "短信验证码不足或超出6位")]
         public string OTPCode { get; set; }
     }
+
+    public class AddNotificationChannelRequest
+    {
+        public string ServerChanSendKey { get; set; }
+        public string TelegramBotToken { get; set; }
+    }
 }

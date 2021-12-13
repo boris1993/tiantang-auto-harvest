@@ -3,7 +3,9 @@ using Microsoft.Extensions.Logging;
 using Quartz;
 using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
+using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Service;
 
@@ -39,7 +41,16 @@ namespace tiantang_auto_harvest.Jobs
                 logger.LogInformation($"将签到甜糖账号 {tiantangLoginInfo.PhoneNumber}");
 
                 Uri uri = new Uri(Constants.TiantangBackendURLs.DailyCheckInURL);
-                var responseJson = tiantangRemoteCallService.DailyCheckIn(tiantangLoginInfo.AccessToken);
+                JsonDocument responseJson;
+                try
+                {
+                    responseJson = tiantangRemoteCallService.DailyCheckIn(tiantangLoginInfo.AccessToken);
+                } 
+                catch (ExternalAPICallException)
+                {
+                    logger.LogError("签到失败，请参考日志");
+                    return Task.CompletedTask;
+                }
 
                 int earnedScore = responseJson.RootElement.GetProperty("data").GetInt32();
                 logger.LogInformation($"签到成功，获得{earnedScore}点星愿");

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using tiantang_auto_harvest.Exceptions;
@@ -59,6 +60,19 @@ namespace tiantang_auto_harvest.Controllers
             }
 
             return new JsonResult(response);
+        }
+
+        [HttpPost]
+        public ActionResult RegisterServerChan(PushChannelKeys pushChannelKeys)
+        {
+            appService.UpdateNotificationKeys(pushChannelKeys);
+            return new EmptyResult();
+        }
+
+        [HttpGet]
+        public ActionResult GetNotificationKeys()
+        {
+            return new JsonResult(appService.GetNotificationKeys());
         }
     }
 }

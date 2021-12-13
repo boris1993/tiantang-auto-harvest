@@ -27,21 +27,22 @@
         </td>
         <td style="width: 50%;">
             <div class="text-center" style="margin-bottom: 10px;">
-                <h1 class="title">获取Token</h1>
+                <h1 class="title">注册通知通道</h1>
                 <div class="border-top border-bottom border-left border-right" style="padding: 6px; margin: 0 auto; width: 350px; text-align: left;">
                     <div style="padding-bottom: 10px;">
-                        <label style="width: 80px; text-align: right;">手机号码</label>
-                        <input type="text" id="phone_number" name="phone_number" autocomplete="off" style="width: 110px" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')" />
-                        <input type="button" id="get_sms_code" value="获取手机验证码" onclick="sendSMSCode()" style="width: 130px;" />
+                        <label style="width: 80px; text-align: right;">Server酱</label>
+                        <input type="text" id="server_chan_send_key" name="server_chan_send_key" autocomplete="off" style="width: 250px" />
                     </div>
                     <div style="padding-bottom: 10px;">
-                        <label style="width: 80px; text-align: right;">短信验证码</label>
-                        <input type="text" id="sms_code" name="sms_code" autocomplete="off" style="width: 110px"/>
-                        <input type="button" id="verify_sms_code" value="登录" onclick="verifySMSCode()" style="width: 130px;" />
+                        <label style="width: 80px; text-align: right;">Telegram</label>
+                        <input type="text" id="telegram_bot_token" name="telegram_bot_token" autocomplete="off" style="width: 250px" />
+                    </div>
+                    <div style="padding-bottom: 10px;">
+                        <input type="button" id="update_keys" value="更新" onclick="updateNotificationKeys()" style="width: 100%;" />
                     </div>
                     <hr style="margin-top: 0" />
-                    <div>
-                        当前登录的手机号：<label id="current_phone_number"></label>
+                    <div style="text-align: center;">
+                        <lable id="update_channel_notes">留空后更新即可删除对应通知通道</lable>
                     </div>
                 </div>
             </div>
@@ -53,10 +54,10 @@
 
 <script type="text/javascript">
     function sendSMSCode() {
-        var phoneNumber = document.getElementById('phone_number').value;
+        var phoneNumber = document.getElementById("phone_number").value;
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "/api/SendSMS", true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader("Content-Type", "application/json");
         xhr.send(JSON.stringify({
             phoneNumber: phoneNumber
         }));
@@ -82,11 +83,11 @@
     }
 
     function verifySMSCode() {
-        var phoneNumber = document.getElementById('phone_number').value;
-        var smsCode = document.getElementById('sms_code').value;
+        var phoneNumber = document.getElementById("phone_number").value;
+        var smsCode = document.getElementById("sms_code").value;
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "/api/VerifyCode", true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader("Content-Type", "application/json");
         xhr.send(JSON.stringify({
             phoneNumber: phoneNumber,
             otpCode: smsCode
@@ -138,7 +139,52 @@
         }
     }
 
+    function updateNotificationKeys() {
+        var sendKey = document.getElementById("server_chan_send_key").value;
+        var telegramBotToken = document.getElementById("telegram_bot_token").value;
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/RegisterServerChan", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify({
+            ServerChanSendKey: sendKey,
+            TelegramBotToken: telegramBotToken
+        }));
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                if (xhr.status != 200) {
+                    var alertMessage = "服务器出现错误：\n" + xhr.responseText;
+                    alert(alertMessage);
+                }
+            }
+        }
+    }
+
+    function loadNotificationKeys() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/api/GetNotificationKeys", true);
+        xhr.send();
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                var responseText = xhr.responseText;
+                if (xhr.status != 200) {
+                    var alertMessage = "服务器出现错误：\n" + responseText;
+                    alert(alertMessage);
+                    return;
+                }
+
+                var responseJson = JSON.parse(responseText);
+                var sendKey = responseJson["serverChanSendKey"];
+                var telegramBotToken = responseJson["telegramBotToken"]
+                document.getElementById("server_chan_send_key").value = sendKey;
+                document.getElementById("telegram_bot_token").value = telegramBotToken;
+            }
+        }
+    }
+
     window.onload = function () {
         getCurrentLogin();
+        loadNotificationKeys();
     }
 </script>

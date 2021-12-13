@@ -16,6 +16,7 @@ using tiantang_auto_harvest.Jobs;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Models.Responses;
 using tiantang_auto_harvest.Service;
+using static tiantang_auto_harvest.Jobs.HarvestJob;
 
 namespace tiantang_auto_harvest
 {
@@ -33,6 +34,7 @@ namespace tiantang_auto_harvest
         {
             services.AddControllersWithViews();
             services.AddDbContext<TiantangLoginInfoDbContext>(options => options.UseSqlite($"Data Source={AppContext.BaseDirectory}/database.db"));
+            services.AddDbContext<PushChannelKeysDbContext>(options => options.UseSqlite($"Data Source={AppContext.BaseDirectory}/database.db"));
             services.AddScoped<AppService>();
             services.AddHttpClient<AppService>(client =>
             {
@@ -40,6 +42,7 @@ namespace tiantang_auto_harvest
                 client.Timeout = TimeSpan.FromSeconds(10);
             });
             services.AddSingleton<TiantangRemoteCallService>();
+            services.AddSingleton<ScoreLoadedEventHandler>();
 
             #region Quartz Configurations
             services.AddSingleton<IJobFactory, QuartzJobFactory>();
@@ -53,15 +56,19 @@ namespace tiantang_auto_harvest
             ));
             services.AddSingleton(new JobSchedule(
                 jobType: typeof(HarvestJob),
-                //cronExpression: "0 0 3 * * ?"
-                cronExpression: "0 * * * * ?"
+                cronExpression: "0 0 3 * * ?"
             ));
             services.AddHostedService<QuartzHostedService>();
             #endregion
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, TiantangLoginInfoDbContext dbContext)
+        public void Configure(
+            IApplicationBuilder app,
+            IWebHostEnvironment env,
+            TiantangLoginInfoDbContext tiantangLoginInfoDbContext,
+            PushChannelKeysDbContext pushChannelKeysDbContext
+        )
         {
             app.UseExceptionHandler(app => app.Run(async context =>
             {
@@ -94,7 +101,10 @@ namespace tiantang_auto_harvest
             });
 
             // Migrate any database changes on startup (includes initial db creation)
-            dbContext.Database.Migrate();
+            tiantangLoginInfoDbContext.Database.Migrate();
+            pushChannelKeysDbContext.Database.Migrate();
+
+            app.UseScoreLoadedEventHandler();
         }
     }
 }

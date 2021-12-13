@@ -9,7 +9,7 @@
         public const string UserInfoURL = $"{BaseURL}/web/api/account/message/loading";
         public const string DevicesListURL = $"{BaseURL}/api/v1/devices";
         public const string DeviceLogsURL = $"{BaseURL}/api/v1/device_logs";
-        public const string HarvestPromotionScores = $"{BaseURL}/api/v1/promotion/score_logs";
+        public const string HarvestPromotionScores = $"{BaseURL}/api/v1/promote/score_logs";
         public const string HarvestDeviceScores = $"{BaseURL}/api/v1/score_logs";
     }
 

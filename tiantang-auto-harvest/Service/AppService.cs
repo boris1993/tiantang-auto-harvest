@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Linq;
 using System.Net;
@@ -14,16 +15,19 @@ namespace tiantang_auto_harvest.Service
     {
         private readonly ILogger logger;
         private readonly TiantangLoginInfoDbContext tiantangLoginInfoDbContext;
+        private readonly PushChannelKeysDbContext pushChannelKeysDbContext;
         private readonly HttpClient httpClient;
 
         public AppService(
             ILogger<AppService> logger,
             TiantangLoginInfoDbContext tiantangLoginInfoDbContext,
+            PushChannelKeysDbContext pushChannelKeysDbContext,
             HttpClient httpClient
         )
         {
             this.logger = logger;
             this.tiantangLoginInfoDbContext = tiantangLoginInfoDbContext;
+            this.pushChannelKeysDbContext = pushChannelKeysDbContext;
             this.httpClient = httpClient;
         }
 
@@ -68,6 +72,22 @@ namespace tiantang_auto_harvest.Service
             tiantangLoginInfoDbContext.SaveChanges();
         }
 
+        public void UpdateNotificationKeys(PushChannelKeys pushChannelKeysRequest)
+        {
+            logger.LogInformation($"正在更新通知通道密钥\n{JsonConvert.SerializeObject(pushChannelKeysRequest)}");
+
+            PushChannelKeys pushChannelKeys = pushChannelKeysDbContext.PushChannels.FirstOrDefault();
+            if (pushChannelKeys == null)
+            {
+                pushChannelKeys = new PushChannelKeys();
+            }
+
+            pushChannelKeys.ServerChanSendKey = pushChannelKeysRequest.ServerChanSendKey;
+            pushChannelKeys.TelegramBotToken = pushChannelKeysRequest.TelegramBotToken;
+            pushChannelKeysDbContext.Update(pushChannelKeys);
+            pushChannelKeysDbContext.SaveChanges();
+        }
+
         public TiantangLoginInfo GetCurrentLoginInfo()
         {
             TiantangLoginInfo tiantangLoginInfo = tiantangLoginInfoDbContext.TiantangLoginInfo.SingleOrDefault();
@@ -77,6 +97,11 @@ namespace tiantang_auto_harvest.Service
             }
 
             return tiantangLoginInfo;
+        }
+
+        public PushChannelKeys GetNotificationKeys()
+        {
+            return pushChannelKeysDbContext.PushChannels.FirstOrDefault() ?? new PushChannelKeys();
         }
 
         private void EnsureSuccessfulResponse(HttpResponseMessage response)
