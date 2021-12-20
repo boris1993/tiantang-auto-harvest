@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
     # Triggers only when the source code is changed
-    paths: ['tiantang-auto-harvest/**']
+    paths: [".github/**", 'tiantang-auto-harvest/**']
 
 jobs:
   build-latest-dev:
