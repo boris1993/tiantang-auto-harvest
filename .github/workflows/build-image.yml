@@ -37,7 +37,7 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v2.7.0
         with:
-          context: ./tiantang-auto-harvest/
+          context: ./
           file: ./tiantang-auto-harvest/Dockerfile
           push: true
           tags: boris1993/tiantang-auto-harvest:latest
