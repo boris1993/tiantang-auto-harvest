@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Quartz;
 using System;
 using System.Collections.Generic;
@@ -35,7 +34,7 @@ namespace tiantang_auto_harvest.Jobs
         {
             using (var scope = serviceProvider.CreateScope())
             {
-                var tiantangLoginInfoDbContext = scope.ServiceProvider.GetService<TiantangLoginInfoDbContext>();
+                var tiantangLoginInfoDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
 
                 var tiantangLoginInfo = tiantangLoginInfoDbContext.TiantangLoginInfo.FirstOrDefault();
                 if (tiantangLoginInfo == null)
@@ -133,7 +132,7 @@ namespace tiantang_auto_harvest.Jobs
                 var handler = serviceProvider.GetService<ScoreLoadedEventHandler>();
                 handler.HandleScoresLoadedEvent(sender, args);
             };
-            
+
         }
     }
 
