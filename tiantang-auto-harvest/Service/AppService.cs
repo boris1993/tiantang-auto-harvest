@@ -19,12 +19,12 @@ namespace tiantang_auto_harvest.Service
 
         public AppService(
             ILogger<AppService> logger,
-            DefaultDbContext tiantangLoginInfoDbContext,
+            DefaultDbContext defaultDbContext,
             HttpClient httpClient
         )
         {
             this.logger = logger;
-            this.defaultDbContext = tiantangLoginInfoDbContext;
+            this.defaultDbContext = defaultDbContext;
             this.httpClient = httpClient;
         }
 
