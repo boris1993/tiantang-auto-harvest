@@ -14,20 +14,17 @@ namespace tiantang_auto_harvest.Service
     public class AppService
     {
         private readonly ILogger logger;
-        private readonly TiantangLoginInfoDbContext tiantangLoginInfoDbContext;
-        private readonly PushChannelKeysDbContext pushChannelKeysDbContext;
+        private readonly DefaultDbContext defaultDbContext;
         private readonly HttpClient httpClient;
 
         public AppService(
             ILogger<AppService> logger,
-            TiantangLoginInfoDbContext tiantangLoginInfoDbContext,
-            PushChannelKeysDbContext pushChannelKeysDbContext,
+            DefaultDbContext defaultDbContext,
             HttpClient httpClient
         )
         {
             this.logger = logger;
-            this.tiantangLoginInfoDbContext = tiantangLoginInfoDbContext;
-            this.pushChannelKeysDbContext = pushChannelKeysDbContext;
+            this.defaultDbContext = defaultDbContext;
             this.httpClient = httpClient;
         }
 
@@ -63,20 +60,20 @@ namespace tiantang_auto_harvest.Service
             logger.LogInformation($"Token是 {token}");
 
             // Remove all records before inserting the new one
-            tiantangLoginInfoDbContext.TiantangLoginInfo.RemoveRange(tiantangLoginInfoDbContext.TiantangLoginInfo);
+            defaultDbContext.TiantangLoginInfo.RemoveRange(defaultDbContext.TiantangLoginInfo);
             TiantangLoginInfo tiantangLoginInfo = tiantangLoginInfo = new TiantangLoginInfo();
             tiantangLoginInfo.PhoneNumber = phoneNumber;
             tiantangLoginInfo.AccessToken = token;
             logger.LogInformation($"正在保存 {phoneNumber} 的记录到数据库");
-            tiantangLoginInfoDbContext.Add(tiantangLoginInfo);
-            tiantangLoginInfoDbContext.SaveChanges();
+            defaultDbContext.Add(tiantangLoginInfo);
+            defaultDbContext.SaveChanges();
         }
 
         public void UpdateNotificationKeys(PushChannelKeys pushChannelKeysRequest)
         {
             logger.LogInformation($"正在更新通知通道密钥\n{JsonConvert.SerializeObject(pushChannelKeysRequest)}");
 
-            PushChannelKeys pushChannelKeys = pushChannelKeysDbContext.PushChannels.FirstOrDefault();
+            PushChannelKeys pushChannelKeys = defaultDbContext.PushChannelKeys.FirstOrDefault();
             if (pushChannelKeys == null)
             {
                 pushChannelKeys = new PushChannelKeys();
@@ -84,13 +81,13 @@ namespace tiantang_auto_harvest.Service
 
             pushChannelKeys.ServerChanSendKey = pushChannelKeysRequest.ServerChanSendKey;
             pushChannelKeys.TelegramBotToken = pushChannelKeysRequest.TelegramBotToken;
-            pushChannelKeysDbContext.Update(pushChannelKeys);
-            pushChannelKeysDbContext.SaveChanges();
+            defaultDbContext.Update(pushChannelKeys);
+            defaultDbContext.SaveChanges();
         }
 
         public TiantangLoginInfo GetCurrentLoginInfo()
         {
-            TiantangLoginInfo tiantangLoginInfo = tiantangLoginInfoDbContext.TiantangLoginInfo.SingleOrDefault();
+            TiantangLoginInfo tiantangLoginInfo = defaultDbContext.TiantangLoginInfo.SingleOrDefault();
             if (tiantangLoginInfo == null)
             {
                 return null;
@@ -101,7 +98,7 @@ namespace tiantang_auto_harvest.Service
 
         public PushChannelKeys GetNotificationKeys()
         {
-            return pushChannelKeysDbContext.PushChannels.FirstOrDefault() ?? new PushChannelKeys();
+            return defaultDbContext.PushChannelKeys.FirstOrDefault() ?? new PushChannelKeys();
         }
 
         private void EnsureSuccessfulResponse(HttpResponseMessage response)

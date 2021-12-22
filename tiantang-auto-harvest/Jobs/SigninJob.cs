@@ -29,7 +29,7 @@ namespace tiantang_auto_harvest.Jobs
         {
             using (var scope = serviceProvider.CreateScope())
             {
-                var tiantangLoginInfoDbContext = scope.ServiceProvider.GetService<TiantangLoginInfoDbContext>();
+                var tiantangLoginInfoDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
 
                 TiantangLoginInfo tiantangLoginInfo = tiantangLoginInfoDbContext.TiantangLoginInfo.FirstOrDefault();
                 if (tiantangLoginInfo == null)
@@ -45,7 +45,7 @@ namespace tiantang_auto_harvest.Jobs
                 try
                 {
                     responseJson = tiantangRemoteCallService.DailyCheckIn(tiantangLoginInfo.AccessToken);
-                } 
+                }
                 catch (ExternalAPICallException)
                 {
                     logger.LogError("签到失败，请参考日志");

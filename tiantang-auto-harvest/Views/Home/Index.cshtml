@@ -74,9 +74,11 @@
                     }
 
                     alert(alertMessage);
+                    return;
                 } else if (xhr.status != 200) {
                     var alertMessage = "服务器出现错误：\n" + xhr.responseText;
                     alert(alertMessage);
+                    return;
                 }
             }
         }
@@ -110,10 +112,16 @@
                     }
 
                     alert(alertMessage);
+
+                    return;
                 } else if (xhr.status != 200) {
                     var alertMessage = "服务器出现错误：\n" + xhr.responseText;
                     alert(alertMessage);
+
+                    return;
                 }
+
+                window.location.reload();
             }
         }
     }
@@ -155,7 +163,10 @@
                 if (xhr.status != 200) {
                     var alertMessage = "服务器出现错误：\n" + xhr.responseText;
                     alert(alertMessage);
+                    return;
                 }
+
+                window.location.reload();
             }
         }
     }

@@ -1,10 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
-using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Models.Requests;
 using tiantang_auto_harvest.Models.Responses;
@@ -53,7 +49,7 @@ namespace tiantang_auto_harvest.Controllers
             if (showToken)
             {
                 response.Token = tiantangLoginInfo.AccessToken;
-            } 
+            }
             else
             {
                 response.Token = "MASKED";

@@ -16,7 +16,6 @@ using tiantang_auto_harvest.Jobs;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Models.Responses;
 using tiantang_auto_harvest.Service;
-using static tiantang_auto_harvest.Jobs.HarvestJob;
 
 namespace tiantang_auto_harvest
 {
@@ -33,8 +32,8 @@ namespace tiantang_auto_harvest
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            services.AddDbContext<TiantangLoginInfoDbContext>(options => options.UseSqlite($"Data Source={AppContext.BaseDirectory}/database.db"));
-            services.AddDbContext<PushChannelKeysDbContext>(options => options.UseSqlite($"Data Source={AppContext.BaseDirectory}/database.db"));
+            services.AddDbContext<DefaultDbContext>(options => options.UseSqlite($"Data Source={AppContext.BaseDirectory}/database.db"));
+
             services.AddScoped<AppService>();
             services.AddHttpClient<AppService>(client =>
             {
@@ -66,8 +65,7 @@ namespace tiantang_auto_harvest
         public void Configure(
             IApplicationBuilder app,
             IWebHostEnvironment env,
-            TiantangLoginInfoDbContext tiantangLoginInfoDbContext,
-            PushChannelKeysDbContext pushChannelKeysDbContext
+            DefaultDbContext defaultDbContext
         )
         {
             app.UseExceptionHandler(app => app.Run(async context =>
@@ -101,8 +99,7 @@ namespace tiantang_auto_harvest
             });
 
             // Migrate any database changes on startup (includes initial db creation)
-            tiantangLoginInfoDbContext.Database.Migrate();
-            pushChannelKeysDbContext.Database.Migrate();
+            defaultDbContext.Database.Migrate();
 
             app.UseScoreLoadedEventHandler();
         }
