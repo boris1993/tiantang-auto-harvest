@@ -10,6 +10,7 @@ using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
 using System;
+using System.IO;
 using System.Net;
 using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Jobs;
@@ -24,6 +25,9 @@ namespace tiantang_auto_harvest
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            // Create the folder for storing the data
+            Directory.CreateDirectory($"{AppContext.BaseDirectory}/data");
         }
 
         public IConfiguration Configuration { get; }
@@ -32,7 +36,7 @@ namespace tiantang_auto_harvest
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            services.AddDbContext<DefaultDbContext>(options => options.UseSqlite($"Data Source={AppContext.BaseDirectory}/database.db"));
+            services.AddDbContext<DefaultDbContext>(options => options.UseSqlite($"Data Source={AppContext.BaseDirectory}/data/database.db"));
 
             services.AddScoped<AppService>();
             services.AddHttpClient<AppService>(client =>
@@ -65,6 +69,7 @@ namespace tiantang_auto_harvest
         public void Configure(
             IApplicationBuilder app,
             IWebHostEnvironment env,
+            IHostApplicationLifetime hostApplicationLifetime,
             DefaultDbContext defaultDbContext
         )
         {
