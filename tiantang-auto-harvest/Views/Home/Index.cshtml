@@ -28,29 +28,30 @@
         <td style="width: 50%;">
             <div class="text-center" style="margin-bottom: 10px;">
                 <h1 class="title">注册通知通道</h1>
-                <div class="border-top border-bottom border-left border-right" style="padding: 6px; margin: 0 auto; width: 350px; text-align: left;">
+                <div class="border-top border-bottom border-left border-right" style="padding: 6px; margin: 0 auto; width: 400px; text-align: left;">
                     <div style="padding-bottom: 10px;">
                         <label style="width: 80px; text-align: right;">Server酱</label>
-                        <input type="text" id="server_chan_send_key" name="server_chan_send_key" autocomplete="off" style="width: 250px" />
+                        <input type="text" id="server_chan_send_key" name="server_chan_send_key" autocomplete="off" style="width: 75%;"/>
                     </div>
                     <div style="padding-bottom: 10px;">
-                        <label style="width: 80px; text-align: right;">Telegram</label>
-                        <input type="text" id="telegram_bot_token" name="telegram_bot_token" autocomplete="off" style="width: 250px" />
+                        <label style="width: 80px; text-align: right;">Bark</label>
+                        <input type="text" id="bark_token" name="bark_token" autocomplete="off" style="width: 75%;"/>
                     </div>
-                    <div style="padding-bottom: 10px;">
-                        <input type="button" id="update_keys" value="更新" onclick="updateNotificationKeys()" style="width: 100%;" />
+                    <div style="text-align: center; padding-bottom: 10px;">
+                        <input type="button" id="update_keys" value="更新" onclick="updateNotificationKeys()" style="width: 40%;" />
+                        <input type="button" id="update_keys" value="测试" onclick="testNotificationKeys()" style="width: 40%;" />
                     </div>
-                    <hr style="margin-top: 0" />
+                    <hr />
                     <div style="text-align: center;">
-                        <lable id="update_channel_notes">留空后更新即可删除对应通知通道</lable>
+                        <lable>测试前需要先执行更新操作</lable>
+                        <br />
+                        <lable>留空后更新即可删除对应通知通道</lable>
                     </div>
                 </div>
             </div>
         </td>
     </tr>
 </table>
-
-<hr />
 
 <script type="text/javascript">
     function sendSMSCode() {
@@ -140,22 +141,31 @@
                     return;
                 }
 
-                var responseJson = JSON.parse(responseText);
-                var currentPhoneNumber = responseJson["phoneNumber"];
-                document.getElementById("current_phone_number").innerHTML = currentPhoneNumber;
+                if (responseText != "") {
+                    var responseJson = JSON.parse(responseText);
+                    var currentPhoneNumber = responseJson["phoneNumber"];
+                    document.getElementById("current_phone_number").innerHTML = currentPhoneNumber;
+                }
             }
         }
     }
 
     function updateNotificationKeys() {
-        var sendKey = document.getElementById("server_chan_send_key").value;
-        var telegramBotToken = document.getElementById("telegram_bot_token").value;
+        var serverChanSendKey = document.getElementById("server_chan_send_key").value;
+        var barkToken = document.getElementById("bark_token").value;
+
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/RegisterServerChan", true);
+        xhr.open("POST", "/api/UpdateNotificationChannels", true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.send(JSON.stringify({
-            ServerChanSendKey: sendKey,
-            TelegramBotToken: telegramBotToken
+            ServerChan: {
+                Token: serverChanSendKey,
+                IsProxyNeeded: serverChanNeedProxy
+            },
+            Bark: {
+                Token: barkToken,
+                IsProxyNeeded: barkNeedProxy
+            }
         }));
 
         xhr.onreadystatechange = function () {
@@ -169,6 +179,12 @@
                 window.location.reload();
             }
         }
+    }
+
+    function testNotificationKeys() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/api/TestNotificationChannels", true);
+        xhr.send();
     }
 
     function loadNotificationKeys() {
@@ -186,10 +202,12 @@
                 }
 
                 var responseJson = JSON.parse(responseText);
-                var sendKey = responseJson["serverChanSendKey"];
-                var telegramBotToken = responseJson["telegramBotToken"]
-                document.getElementById("server_chan_send_key").value = sendKey;
-                document.getElementById("telegram_bot_token").value = telegramBotToken;
+
+                var serverChanSendKey = responseJson["serverChan"]["token"];
+                var barkToken = responseJson["bark"]["token"];
+
+                document.getElementById("server_chan_send_key").value = serverChanSendKey;
+                document.getElementById("bark_token").value = barkToken;
             }
         }
     }

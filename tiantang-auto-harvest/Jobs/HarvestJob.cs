@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using tiantang_auto_harvest.EventListeners;
 using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Service;
@@ -34,9 +33,9 @@ namespace tiantang_auto_harvest.Jobs
         {
             using (var scope = serviceProvider.CreateScope())
             {
-                var tiantangLoginInfoDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
+                var defaultDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
 
-                var tiantangLoginInfo = tiantangLoginInfoDbContext.TiantangLoginInfo.FirstOrDefault();
+                var tiantangLoginInfo = defaultDbContext.TiantangLoginInfo.FirstOrDefault();
                 if (tiantangLoginInfo == null)
                 {
                     logger.LogInformation("未登录甜糖账号，跳过收取星愿");
@@ -87,67 +86,5 @@ namespace tiantang_auto_harvest.Jobs
 
             return Task.CompletedTask;
         }
-    }
-
-    public class ScoreLoadedEventHandler
-    {
-        private readonly ILogger<ScoreLoadedEventHandler> logger;
-        private readonly TiantangRemoteCallService tiantangRemoteCallService;
-        public ScoreLoadedEventHandler(ILogger<ScoreLoadedEventHandler> logger, TiantangRemoteCallService tiantangRemoteCallService)
-        {
-            this.logger = logger;
-            this.tiantangRemoteCallService = tiantangRemoteCallService;
-        }
-
-        public void HandleScoresLoadedEvent(object sender, EventArgs eventArgs)
-        {
-            var tiantangScores = (TiantangScores)eventArgs;
-            var accessToken = tiantangScores.AccessToken;
-
-            var promoteScore = tiantangScores.PromotionScore;
-            if (promoteScore <= 0)
-            {
-                logger.LogInformation("无可收取的推广星愿");
-            }
-            else
-            {
-                logger.LogInformation($"正在收取{tiantangScores.PromotionScore}点推广星愿");
-                tiantangRemoteCallService.HarvestPromotionScore(tiantangScores.PromotionScore, tiantangScores.AccessToken);
-            }
-
-            var deviceScores = tiantangScores.DeviceScores;
-            tiantangRemoteCallService.HarvestDeviceScore(deviceScores, accessToken);
-        }
-    }
-
-    public static class ScoreLoadedEventHandlerExtensions
-    {
-        public static void UseScoreLoadedEventHandler(this IApplicationBuilder app)
-        {
-            var serviceProvider = app.ApplicationServices;
-            var harvestJob = serviceProvider.GetService<HarvestJob>();
-            // 监听星愿检查完成事件
-            harvestJob.ScoresLoadedEventHandler += (sender, args) =>
-            {
-                var handler = serviceProvider.GetService<ScoreLoadedEventHandler>();
-                handler.HandleScoresLoadedEvent(sender, args);
-            };
-
-        }
-    }
-
-    public class TiantangScores : EventArgs
-    {
-        public string AccessToken { get; set; }
-
-        /// <summary>
-        /// 推广获得的点数
-        /// </summary>
-        public int PromotionScore { get; set; }
-
-        /// <summary>
-        /// Key是节点ID，value是此节点当日可收取的点数
-        /// </summary>
-        public Dictionary<string, int> DeviceScores = new Dictionary<string, int>();
     }
 }

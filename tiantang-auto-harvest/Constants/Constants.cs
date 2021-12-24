@@ -13,6 +13,25 @@
         public const string HarvestDeviceScores = $"{BaseURL}/api/v1/score_logs";
     }
 
+    public class NotificationURLs
+    {
+        /// <summary>
+        /// Server酱推送地址
+        /// </summary>
+        public const string ServerChan = "https://sctapi.ftqq.com/{0}.send";
+
+        /// <summary>
+        /// Bark推送地址。{0}为推送Token，{1}为标题，{2}为内容
+        /// </summary>
+        public const string Bark = "https://api.day.app/{0}/{1}/{2}";
+    }
+
+    public class NotificationChannelNames
+    {
+        public const string ServerChan = "serverchan";
+        public const string Bark = "bark";
+    }
+
     public class ErrorMessages
     {
         public const string FieldCannotBeEmpty = "%s 不可为空";

@@ -59,9 +59,16 @@ namespace tiantang_auto_harvest.Controllers
         }
 
         [HttpPost]
-        public ActionResult RegisterServerChan(PushChannelKeys pushChannelKeys)
+        public ActionResult UpdateNotificationChannels(SetNotificationChannelRequest setNotificationChannelRequest)
         {
-            appService.UpdateNotificationKeys(pushChannelKeys);
+            appService.UpdateNotificationKeys(setNotificationChannelRequest);
+            return new EmptyResult();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> TestNotificationChannels()
+        {
+            await appService.TestNotificationChannels();
             return new EmptyResult();
         }
 

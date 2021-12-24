@@ -1,13 +1,17 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using tiantang_auto_harvest.Constants;
 using tiantang_auto_harvest.Exceptions;
+using tiantang_auto_harvest.Jobs;
 using tiantang_auto_harvest.Models;
+using tiantang_auto_harvest.Models.Requests;
 
 namespace tiantang_auto_harvest.Service
 {
@@ -15,16 +19,19 @@ namespace tiantang_auto_harvest.Service
     {
         private readonly ILogger logger;
         private readonly DefaultDbContext defaultDbContext;
+        private readonly NotificationRemoteCallService notificationRemoteCallService;
         private readonly HttpClient httpClient;
 
         public AppService(
             ILogger<AppService> logger,
             DefaultDbContext defaultDbContext,
+            NotificationRemoteCallService notificationRemoteCallService,
             HttpClient httpClient
         )
         {
             this.logger = logger;
             this.defaultDbContext = defaultDbContext;
+            this.notificationRemoteCallService = notificationRemoteCallService;
             this.httpClient = httpClient;
         }
 
@@ -69,20 +76,26 @@ namespace tiantang_auto_harvest.Service
             defaultDbContext.SaveChanges();
         }
 
-        public void UpdateNotificationKeys(PushChannelKeys pushChannelKeysRequest)
+        public void UpdateNotificationKeys(SetNotificationChannelRequest setNotificationChannelRequest)
         {
-            logger.LogInformation($"正在更新通知通道密钥\n{JsonConvert.SerializeObject(pushChannelKeysRequest)}");
+            logger.LogInformation($"正在更新通知通道密钥\n{JsonConvert.SerializeObject(setNotificationChannelRequest)}");
 
-            PushChannelKeys pushChannelKeys = defaultDbContext.PushChannelKeys.FirstOrDefault();
-            if (pushChannelKeys == null)
+            defaultDbContext.PushChannelKeys.RemoveRange(defaultDbContext.PushChannelKeys);
+            List<PushChannelConfiguration> pushChannelConfigurations = new List<PushChannelConfiguration>
             {
-                pushChannelKeys = new PushChannelKeys();
-            }
+                new PushChannelConfiguration(NotificationChannelNames.ServerChan, setNotificationChannelRequest.ServerChan.Token),
+                new PushChannelConfiguration(NotificationChannelNames.Bark, setNotificationChannelRequest.Bark.Token),
+            };
 
-            pushChannelKeys.ServerChanSendKey = pushChannelKeysRequest.ServerChanSendKey;
-            pushChannelKeys.TelegramBotToken = pushChannelKeysRequest.TelegramBotToken;
-            defaultDbContext.Update(pushChannelKeys);
+            defaultDbContext.UpdateRange(pushChannelConfigurations);
             defaultDbContext.SaveChanges();
+        }
+
+        public async Task TestNotificationChannels()
+        {
+            var notificationBody = new NotificationBody("通知测试第一行\n通知测试第二行");
+            await notificationRemoteCallService.SendNotificationViaServerChan(notificationBody);
+            await notificationRemoteCallService.SendNotificationViaBark(notificationBody);
         }
 
         public TiantangLoginInfo GetCurrentLoginInfo()
@@ -96,9 +109,27 @@ namespace tiantang_auto_harvest.Service
             return tiantangLoginInfo;
         }
 
-        public PushChannelKeys GetNotificationKeys()
+        public SetNotificationChannelRequest GetNotificationKeys()
         {
-            return defaultDbContext.PushChannelKeys.FirstOrDefault() ?? new PushChannelKeys();
+            var PushChannelConfigurations = defaultDbContext.PushChannelKeys.ToList<PushChannelConfiguration>();
+            var response = new SetNotificationChannelRequest();
+            foreach (var pushChannelConfiguration in PushChannelConfigurations)
+            {
+                switch (pushChannelConfiguration.ServiceName)
+                {
+                    case Constants.NotificationChannelNames.ServerChan:
+                        response.ServerChan = new SetNotificationChannelRequest.NotificationChannelConfig(pushChannelConfiguration.Token);
+                        break;
+                    case Constants.NotificationChannelNames.Bark:
+                        response.Bark = new SetNotificationChannelRequest.NotificationChannelConfig(pushChannelConfiguration.Token);
+                        break;
+                    default:
+                        logger.LogWarning($"未知的通知渠道{pushChannelConfiguration.ServiceName}");
+                        break;
+                }
+            }
+
+            return response;
         }
 
         private void EnsureSuccessfulResponse(HttpResponseMessage response)
