@@ -7,8 +7,8 @@ namespace tiantang_auto_harvest.Models
     public class DefaultDbContext : DbContext
     {
         public DbSet<TiantangLoginInfo> TiantangLoginInfo { get; set; }
-        public DbSet<PushChannelKeys> PushChannelKeys { get; set; }
-        public DbSet<ProxySettings> ProxySettings { get; set; }
+        public DbSet<PushChannelConfiguration> PushChannelKeys { get; set; }
+        public DbSet<UnsendNotification> UnsendNotifications { get; set; }
 
         public DefaultDbContext(DbContextOptions<DefaultDbContext> options) : base(options)
         { }
@@ -17,13 +17,6 @@ namespace tiantang_auto_harvest.Models
         {
             modelBuilder.Entity<TiantangLoginInfo>()
                 .HasIndex(entity => entity.PhoneNumber)
-                .IsUnique();
-
-            modelBuilder.Entity<PushChannelKeys>()
-                .HasIndex(entity => entity.ServerChanSendKey)
-                .IsUnique();
-            modelBuilder.Entity<PushChannelKeys>()
-                .HasIndex(entity => entity.TelegramBotToken)
                 .IsUnique();
         }
     }
@@ -36,24 +29,30 @@ namespace tiantang_auto_harvest.Models
         public string AccessToken { get; set; }
     }
 
-    public class PushChannelKeys
+    public class PushChannelConfiguration
     {
+        public PushChannelConfiguration() { }
+
+        public PushChannelConfiguration(string serviceName, string token)
+        {
+            ServiceName = serviceName;
+            Token = token;
+        }
+
         public int Id { get; set; }
-        public string ServerChanSendKey { get; set; }
-        public string TelegramBotToken { get; set; }
-        public bool IsProxyNeeded { get; set; }
+        public string ServiceName { get; set; }
+        public string Token { get; set; }
     }
 
-    public class ProxySettings
+    public class UnsendNotification
     {
+        public UnsendNotification() { }
+        public UnsendNotification(string content)
+        {
+            Content = content;
+        }
         public int Id { get; set; }
-
-        [Required(ErrorMessage = "代理类型不可为空")]
-        public string Protocol { get; set; }
-        [Required(ErrorMessage = "代理主机名不可为空")]
-        public string Host { get; set; }
-        [Required(ErrorMessage = "代理端口号不可为空"), Range(1, 65535, ErrorMessage = "端口号必须介于{1}~{2}")]
-        public string Port { get; set; }
+        public string Content { get; set; }
     }
 }
 

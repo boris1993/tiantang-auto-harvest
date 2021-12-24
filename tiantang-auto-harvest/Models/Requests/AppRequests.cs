@@ -23,9 +23,19 @@ namespace tiantang_auto_harvest.Models.Requests
         public string OTPCode { get; set; }
     }
 
-    public class AddNotificationChannelRequest
+    public class SetNotificationChannelRequest
     {
-        public string ServerChanSendKey { get; set; }
-        public string TelegramBotToken { get; set; }
+        public NotificationChannelConfig ServerChan { get; set; }
+        public NotificationChannelConfig Bark { get; set; }
+
+        public class NotificationChannelConfig
+        {
+            public NotificationChannelConfig() { }
+            public NotificationChannelConfig(string token)
+            {
+                Token = token;
+            }
+            public string Token { get; set; }
+        }
     }
 }

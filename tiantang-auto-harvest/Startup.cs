@@ -12,6 +12,7 @@ using Quartz.Spi;
 using System;
 using System.IO;
 using System.Net;
+using tiantang_auto_harvest.EventListeners;
 using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Jobs;
 using tiantang_auto_harvest.Models;
@@ -39,6 +40,7 @@ namespace tiantang_auto_harvest
             services.AddDbContext<DefaultDbContext>(options => options.UseSqlite($"Data Source={AppContext.BaseDirectory}/data/database.db"));
 
             services.AddScoped<AppService>();
+            services.AddScoped<NotificationRemoteCallService>();
             services.AddHttpClient<AppService>(client =>
             {
                 client.BaseAddress = new Uri(Constants.TiantangBackendURLs.BaseURL);
@@ -59,7 +61,7 @@ namespace tiantang_auto_harvest
             ));
             services.AddSingleton(new JobSchedule(
                 jobType: typeof(HarvestJob),
-                cronExpression: "0 0 3 * * ?"
+                cronExpression: "0 0 10 * * ?"
             ));
             services.AddHostedService<QuartzHostedService>();
             #endregion
@@ -69,7 +71,6 @@ namespace tiantang_auto_harvest
         public void Configure(
             IApplicationBuilder app,
             IWebHostEnvironment env,
-            IHostApplicationLifetime hostApplicationLifetime,
             DefaultDbContext defaultDbContext
         )
         {

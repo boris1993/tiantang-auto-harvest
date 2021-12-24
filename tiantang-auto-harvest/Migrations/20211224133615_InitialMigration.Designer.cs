@@ -10,7 +10,7 @@ using tiantang_auto_harvest.Models;
 namespace tiantang_auto_harvest.Migrations
 {
     [DbContext(typeof(DefaultDbContext))]
-    [Migration("20211220033748_InitialMigration")]
+    [Migration("20211224133615_InitialMigration")]
     partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -18,51 +18,19 @@ namespace tiantang_auto_harvest.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
 
-            modelBuilder.Entity("tiantang_auto_harvest.Models.ProxySettings", b =>
+            modelBuilder.Entity("tiantang_auto_harvest.Models.PushChannelConfiguration", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Host")
-                        .IsRequired()
+                    b.Property<string>("ServiceName")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Port")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Protocol")
-                        .IsRequired()
+                    b.Property<string>("Token")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.ToTable("ProxySettings");
-                });
-
-            modelBuilder.Entity("tiantang_auto_harvest.Models.PushChannelKeys", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsProxyNeeded")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ServerChanSendKey")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("TelegramBotToken")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ServerChanSendKey")
-                        .IsUnique();
-
-                    b.HasIndex("TelegramBotToken")
-                        .IsUnique();
 
                     b.ToTable("PushChannelKeys");
                 });
@@ -86,6 +54,20 @@ namespace tiantang_auto_harvest.Migrations
                         .IsUnique();
 
                     b.ToTable("TiantangLoginInfo");
+                });
+
+            modelBuilder.Entity("tiantang_auto_harvest.Models.UnsendNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UnsendNotifications");
                 });
 #pragma warning restore 612, 618
         }
