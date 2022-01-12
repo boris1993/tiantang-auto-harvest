@@ -28,7 +28,7 @@ namespace tiantang_auto_harvest.EventListeners
             this.tiantangRemoteCallService = tiantangRemoteCallService;
         }
 
-        public void HandleScoresLoadedEvent(object sender, EventArgs eventArgs)
+        public async Task HandleScoresLoadedEvent(object sender, EventArgs eventArgs)
         {
             if (eventArgs.GetType() != typeof(TiantangScores))
             {
@@ -57,11 +57,8 @@ namespace tiantang_auto_harvest.EventListeners
             using (var scope = serviceProvider.CreateScope())
             {
                 var notificationRemoteCallService = scope.ServiceProvider.GetService<NotificationRemoteCallService>();
-                Task.Run(async () =>
-                {
-                    await notificationRemoteCallService.SendNotificationToAllChannels(
-                        new NotificationBody($"今日已收取{tiantangScores.PromotionScore}点推广星愿\n共收取{totalDeviceScores}点设备星愿"));
-                });
+                await notificationRemoteCallService.SendNotificationToAllChannels(
+                    new NotificationBody($"今日已收取{tiantangScores.PromotionScore}点推广星愿\n共收取{totalDeviceScores}点设备星愿"));
             }
         }
     }
@@ -73,10 +70,10 @@ namespace tiantang_auto_harvest.EventListeners
             var serviceProvider = app.ApplicationServices;
             var harvestJob = serviceProvider.GetService<HarvestJob>();
             // 监听星愿检查完成事件
-            harvestJob.ScoresLoadedEventHandler += (sender, args) =>
+            harvestJob.ScoresLoadedEventHandler += async (sender, args) =>
             {
                 var handler = serviceProvider.GetService<ScoreLoadedEventHandler>();
-                handler.HandleScoresLoadedEvent(sender, args);
+                await handler.HandleScoresLoadedEvent(sender, args);
             };
 
         }

@@ -9,7 +9,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using tiantang_auto_harvest.Constants;
 using tiantang_auto_harvest.Exceptions;
-using tiantang_auto_harvest.Jobs;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Models.Requests;
 
@@ -94,8 +93,7 @@ namespace tiantang_auto_harvest.Service
         public async Task TestNotificationChannels()
         {
             var notificationBody = new NotificationBody("通知测试第一行\n通知测试第二行");
-            await notificationRemoteCallService.SendNotificationViaServerChan(notificationBody);
-            await notificationRemoteCallService.SendNotificationViaBark(notificationBody);
+            await notificationRemoteCallService.SendNotificationToAllChannels(notificationBody);
         }
 
         public TiantangLoginInfo GetCurrentLoginInfo()
