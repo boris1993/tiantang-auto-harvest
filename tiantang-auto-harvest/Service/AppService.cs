@@ -82,8 +82,8 @@ namespace tiantang_auto_harvest.Service
             defaultDbContext.PushChannelKeys.RemoveRange(defaultDbContext.PushChannelKeys);
             List<PushChannelConfiguration> pushChannelConfigurations = new List<PushChannelConfiguration>
             {
-                new PushChannelConfiguration(NotificationChannelNames.ServerChan, setNotificationChannelRequest.ServerChan.Token),
-                new PushChannelConfiguration(NotificationChannelNames.Bark, setNotificationChannelRequest.Bark.Token),
+                new PushChannelConfiguration(NotificationChannelNames.ServerChan, setNotificationChannelRequest.ServerChan),
+                new PushChannelConfiguration(NotificationChannelNames.Bark, setNotificationChannelRequest.Bark),
             };
 
             defaultDbContext.UpdateRange(pushChannelConfigurations);
@@ -116,10 +116,10 @@ namespace tiantang_auto_harvest.Service
                 switch (pushChannelConfiguration.ServiceName)
                 {
                     case Constants.NotificationChannelNames.ServerChan:
-                        response.ServerChan = new SetNotificationChannelRequest.NotificationChannelConfig(pushChannelConfiguration.Token);
+                        response.ServerChan = pushChannelConfiguration.Token;
                         break;
                     case Constants.NotificationChannelNames.Bark:
-                        response.Bark = new SetNotificationChannelRequest.NotificationChannelConfig(pushChannelConfiguration.Token);
+                        response.Bark = pushChannelConfiguration.Token;
                         break;
                     default:
                         logger.LogWarning($"未知的通知渠道{pushChannelConfiguration.ServiceName}");
