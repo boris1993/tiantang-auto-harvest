@@ -25,17 +25,7 @@ namespace tiantang_auto_harvest.Models.Requests
 
     public class SetNotificationChannelRequest
     {
-        public NotificationChannelConfig ServerChan { get; set; }
-        public NotificationChannelConfig Bark { get; set; }
-
-        public class NotificationChannelConfig
-        {
-            public NotificationChannelConfig() { }
-            public NotificationChannelConfig(string token)
-            {
-                Token = token;
-            }
-            public string Token { get; set; }
-        }
+        public string ServerChan { get; set; }
+        public string Bark { get; set; }
     }
 }

@@ -158,12 +158,8 @@
         xhr.open("POST", "/api/UpdateNotificationChannels", true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.send(JSON.stringify({
-            ServerChan: {
-                Token: serverChanSendKey
-            },
-            Bark: {
-                Token: barkToken
-            }
+            ServerChan: serverChanSendKey,
+            Bark: barkToken
         }));
 
         xhr.onreadystatechange = function () {
@@ -202,8 +198,8 @@
                 if (responseText) {
                     var responseJson = JSON.parse(responseText);
 
-                    var serverChanSendKey = responseJson["serverChan"]["token"];
-                    var barkToken = responseJson["bark"]["token"];
+                    var serverChanSendKey = responseJson["serverChan"];
+                    var barkToken = responseJson["bark"];
 
                     document.getElementById("server_chan_send_key").value = serverChanSendKey;
                     document.getElementById("bark_token").value = barkToken;

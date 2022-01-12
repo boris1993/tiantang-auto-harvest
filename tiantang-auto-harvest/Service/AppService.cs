@@ -9,7 +9,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using tiantang_auto_harvest.Constants;
 using tiantang_auto_harvest.Exceptions;
-using tiantang_auto_harvest.Jobs;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Models.Requests;
 
@@ -83,8 +82,8 @@ namespace tiantang_auto_harvest.Service
             defaultDbContext.PushChannelKeys.RemoveRange(defaultDbContext.PushChannelKeys);
             List<PushChannelConfiguration> pushChannelConfigurations = new List<PushChannelConfiguration>
             {
-                new PushChannelConfiguration(NotificationChannelNames.ServerChan, setNotificationChannelRequest.ServerChan.Token),
-                new PushChannelConfiguration(NotificationChannelNames.Bark, setNotificationChannelRequest.Bark.Token),
+                new PushChannelConfiguration(NotificationChannelNames.ServerChan, setNotificationChannelRequest.ServerChan),
+                new PushChannelConfiguration(NotificationChannelNames.Bark, setNotificationChannelRequest.Bark),
             };
 
             defaultDbContext.UpdateRange(pushChannelConfigurations);
@@ -94,8 +93,7 @@ namespace tiantang_auto_harvest.Service
         public async Task TestNotificationChannels()
         {
             var notificationBody = new NotificationBody("通知测试第一行\n通知测试第二行");
-            await notificationRemoteCallService.SendNotificationViaServerChan(notificationBody);
-            await notificationRemoteCallService.SendNotificationViaBark(notificationBody);
+            await notificationRemoteCallService.SendNotificationToAllChannels(notificationBody);
         }
 
         public TiantangLoginInfo GetCurrentLoginInfo()
@@ -118,10 +116,10 @@ namespace tiantang_auto_harvest.Service
                 switch (pushChannelConfiguration.ServiceName)
                 {
                     case Constants.NotificationChannelNames.ServerChan:
-                        response.ServerChan = new SetNotificationChannelRequest.NotificationChannelConfig(pushChannelConfiguration.Token);
+                        response.ServerChan = pushChannelConfiguration.Token;
                         break;
                     case Constants.NotificationChannelNames.Bark:
-                        response.Bark = new SetNotificationChannelRequest.NotificationChannelConfig(pushChannelConfiguration.Token);
+                        response.Bark = pushChannelConfiguration.Token;
                         break;
                     default:
                         logger.LogWarning($"未知的通知渠道{pushChannelConfiguration.ServiceName}");
