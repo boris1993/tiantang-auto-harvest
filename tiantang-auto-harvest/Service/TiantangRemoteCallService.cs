@@ -42,6 +42,16 @@ namespace tiantang_auto_harvest.Service
             return SendRequest(new Uri(Constants.TiantangBackendURLs.HarvestPromotionScores), HttpMethod.Post, accessToken, body);
         }
 
+        public JsonDocument RetrieveAllBonusCards(string accessToken)
+        {
+            return SendRequest(new Uri(Constants.TiantangBackendURLs.GetActivatedBonusCards), HttpMethod.Get, accessToken);
+        }
+
+        public JsonDocument RetrieveActivatedBonusCards(string accessToken)
+        {
+            return SendRequest(new Uri(Constants.TiantangBackendURLs.GetActivatedBonusCardStatus), HttpMethod.Get, accessToken);
+        }
+
         public void HarvestDeviceScore(Dictionary<string, int> devices, string accessToken)
         {
             var uri = new Uri(Constants.TiantangBackendURLs.HarvestDeviceScores);
@@ -59,6 +69,11 @@ namespace tiantang_auto_harvest.Service
                 body["score"] = device.Value;
                 SendRequest(uri, HttpMethod.Post, accessToken, body);
             }
+        }
+
+        public void ActiveElectricBillBonusCard(string accessToken)
+        {
+            SendRequest(new Uri(Constants.TiantangBackendURLs.ActiveElectricBillBonusCard), HttpMethod.Put, accessToken);
         }
 
         private JsonDocument SendRequest(Uri uri, HttpMethod httpMethod, string accessToken, object body = null)

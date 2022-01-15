@@ -2,6 +2,8 @@
 {
     public class TiantangBackendURLs
     {
+        private TiantangBackendURLs() { }
+
         public const string BaseURL = "http://tiantang.mogencloud.com";
         public const string SendSMSURL = $"{BaseURL}/web/api/login/code";
         public const string VerifySMSCodeURL = $"{BaseURL}/web/api/login";
@@ -11,6 +13,24 @@
         public const string DeviceLogsURL = $"{BaseURL}/api/v1/device_logs";
         public const string HarvestPromotionScores = $"{BaseURL}/api/v1/promote/score_logs";
         public const string HarvestDeviceScores = $"{BaseURL}/api/v1/score_logs";
+        public const string GetActivatedBonusCards = $"{BaseURL}/api/v1/user_props";
+        public const string GetActivatedBonusCardStatus = $"{BaseURL}/api/v1/user_props/actived";
+        public const string ActiveElectricBillBonusCard = $"/api/v1/user_props/{TiantangBonusCardTypes.ElectricBillBonus}/actived";
+    }
+
+    public class TiantangBonusCardTypes
+    {
+        private TiantangBonusCardTypes() { }
+
+        /// <summary>
+        /// 星愿加成卡
+        /// </summary>
+        public const string Multiplier = "2";
+
+        /// <summary>
+        /// 电费卡
+        /// </summary>
+        public const string ElectricBillBonus = "5";
     }
 
     public class NotificationURLs
