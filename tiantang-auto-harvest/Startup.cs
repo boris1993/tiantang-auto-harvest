@@ -54,6 +54,7 @@ namespace tiantang_auto_harvest
             services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
             services.AddSingleton<SigninJob>();
             services.AddSingleton<HarvestJob>();
+            services.AddSingleton<ApplyBonusCardsJob>();
             // Will sign in on 03:00 each day
             services.AddSingleton(new JobSchedule(
                 jobType: typeof(SigninJob),
@@ -62,6 +63,10 @@ namespace tiantang_auto_harvest
             services.AddSingleton(new JobSchedule(
                 jobType: typeof(HarvestJob),
                 cronExpression: "0 0 10 * * ?"
+            ));
+            services.AddSingleton(new JobSchedule(
+                jobType: typeof(ApplyBonusCardsJob),
+                cronExpression: "0 * * * * ?"
             ));
             services.AddHostedService<QuartzHostedService>();
             #endregion
