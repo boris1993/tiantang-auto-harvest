@@ -1,5 +1,9 @@
 ﻿# 甜糖星愿自动签到、采集工具
 
+[![Docker Hub Pulls](https://img.shields.io/docker/pulls/boris1993/tiantang-auto-harvest)](https://hub.docker.com/r/boris1993/tiantang-auto-harvest)
+[![Build and publish the image](https://github.com/boris1993/tiantang-auto-harvest/actions/workflows/build-image.yml/badge.svg)](https://hub.docker.com/r/boris1993/tiantang-auto-harvest)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fboris1993%2Ftiantang-auto-harvest.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fboris1993%2Ftiantang-auto-harvest?ref=badge_shield)
+
 每日自动签到，自动收取推广星愿和设备星愿。
 
 目前功能：
