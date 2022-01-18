@@ -15,7 +15,7 @@
         public const string HarvestDeviceScores = $"{BaseURL}/api/v1/score_logs";
         public const string GetActivatedBonusCards = $"{BaseURL}/api/v1/user_props";
         public const string GetActivatedBonusCardStatus = $"{BaseURL}/api/v1/user_props/actived";
-        public const string ActiveElectricBillBonusCard = $"/api/v1/user_props/{TiantangBonusCardTypes.ElectricBillBonus}/actived";
+        public const string ActiveElectricBillBonusCard = $"{BaseURL}/api/v1/user_props/{TiantangBonusCardTypes.ElectricBillBonus}/actived";
     }
 
     public class TiantangBonusCardTypes

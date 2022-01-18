@@ -99,7 +99,7 @@ namespace tiantang_auto_harvest.Jobs
                 .Where(element => element.GetProperty("name").GetString() == "电费卡")
                 .FirstOrDefault();
 
-            if (currentActivatedElectricBillBonus.ValueKind != JsonValueKind.Null)
+            if (currentActivatedElectricBillBonus.ValueKind != JsonValueKind.Undefined)
             {
                 var expireEpoch = currentActivatedElectricBillBonus.GetProperty("ended_at").GetInt32();
                 var expireDate = DateTimeOffset.FromUnixTimeSeconds(expireEpoch).ToString("yyyy-MM-dd HH:mm:ss");
