@@ -66,8 +66,7 @@ namespace tiantang_auto_harvest
             ));
             services.AddSingleton(new JobSchedule(
                 jobType: typeof(ApplyBonusCardsJob),
-                //cronExpression: "0 0 10 * * ?"
-                cronExpression: "0 * * * * ?"
+                cronExpression: "0 0 10 * * ?"
             ));
             services.AddHostedService<QuartzHostedService>();
             #endregion
