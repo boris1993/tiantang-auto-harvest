@@ -58,7 +58,9 @@ namespace tiantang_auto_harvest.EventListeners
             {
                 var notificationRemoteCallService = scope.ServiceProvider.GetService<NotificationRemoteCallService>();
                 await notificationRemoteCallService.SendNotificationToAllChannels(
-                    new NotificationBody($"今日已收取{tiantangScores.PromotionScore}点推广星愿\n共收取{totalDeviceScores}点设备星愿"));
+                    new NotificationBody(
+                        $"今日已收取{tiantangScores.PromotionScore + totalDeviceScores}点星愿\n" +
+                        $"包括{tiantangScores.PromotionScore}点推广星愿，和{totalDeviceScores}点设备星愿"));
             }
         }
     }
