@@ -19,6 +19,14 @@ namespace tiantang_auto_harvest.Service
             this.httpClient = httpClient;
         }
 
+        public JsonDocument RefreshLogin(string unionId)
+        {
+            return SendRequestWithoutToken(
+                new Uri(Constants.TiantangBackendURLs.RefreshLogin),
+                HttpMethod.Post,
+                JsonContent.Create(new { union_id = unionId }));
+        }
+
         public JsonDocument DailyCheckIn(string accessToken)
         {
             return SendRequest(new Uri(Constants.TiantangBackendURLs.DailyCheckInURL), HttpMethod.Post, accessToken);
@@ -93,12 +101,13 @@ namespace tiantang_auto_harvest.Service
             return responseJson;
         }
 
-        private JsonDocument SendRequestWithoutToken(Uri uri, HttpMethod httpMethod)
+        private JsonDocument SendRequestWithoutToken(Uri uri, HttpMethod httpMethod, HttpContent body = null)
         {
             var httpRequestMessage = new HttpRequestMessage
             {
                 Method = httpMethod,
-                RequestUri = uri
+                RequestUri = uri,
+                Content = body
             };
             var response = httpClient.SendAsync(httpRequestMessage).Result;
             EnsureSuccessfulResponse(response, out JsonDocument responseJson);

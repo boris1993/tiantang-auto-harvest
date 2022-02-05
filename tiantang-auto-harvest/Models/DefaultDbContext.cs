@@ -27,6 +27,7 @@ namespace tiantang_auto_harvest.Models
         [Required]
         public string PhoneNumber { get; set; }
         public string AccessToken { get; set; }
+        public string UnionId { get; set; }
     }
 
     public class PushChannelConfiguration

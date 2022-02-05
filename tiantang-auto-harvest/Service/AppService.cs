@@ -7,7 +7,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using tiantang_auto_harvest.Constants;
 using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Models.Requests;
@@ -18,18 +17,21 @@ namespace tiantang_auto_harvest.Service
     {
         private readonly ILogger logger;
         private readonly DefaultDbContext defaultDbContext;
+        private readonly TiantangRemoteCallService tiantangRemoteCallService;
         private readonly NotificationRemoteCallService notificationRemoteCallService;
         private readonly HttpClient httpClient;
 
         public AppService(
             ILogger<AppService> logger,
             DefaultDbContext defaultDbContext,
+            TiantangRemoteCallService tiantangRemoteCallService,
             NotificationRemoteCallService notificationRemoteCallService,
             HttpClient httpClient
         )
         {
             this.logger = logger;
             this.defaultDbContext = defaultDbContext;
+            this.tiantangRemoteCallService = tiantangRemoteCallService;
             this.notificationRemoteCallService = notificationRemoteCallService;
             this.httpClient = httpClient;
         }
@@ -63,15 +65,39 @@ namespace tiantang_auto_harvest.Service
             JsonDocument responseJson = JsonDocument.Parse(responseBody);
 
             string token = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
-            logger.LogInformation($"Token是 {token}");
+            string unionId = responseJson.RootElement.GetProperty("data").GetProperty("union_id").GetString();
+            logger.LogInformation($"Token是 {token} , union ID是 {unionId}");
 
             // Remove all records before inserting the new one
             defaultDbContext.TiantangLoginInfo.RemoveRange(defaultDbContext.TiantangLoginInfo);
-            TiantangLoginInfo tiantangLoginInfo = tiantangLoginInfo = new TiantangLoginInfo();
-            tiantangLoginInfo.PhoneNumber = phoneNumber;
-            tiantangLoginInfo.AccessToken = token;
+            TiantangLoginInfo tiantangLoginInfo = new TiantangLoginInfo
+            {
+                PhoneNumber = phoneNumber,
+                AccessToken = token,
+                UnionId = unionId
+            };
             logger.LogInformation($"正在保存 {phoneNumber} 的记录到数据库");
             defaultDbContext.Add(tiantangLoginInfo);
+            defaultDbContext.SaveChanges();
+        }
+
+        public void RefreshLogin()
+        {
+            TiantangLoginInfo tiantangLoginInfo = defaultDbContext.TiantangLoginInfo.SingleOrDefault();
+            if (tiantangLoginInfo == null)
+            {
+                return;
+            }
+
+            logger.LogInformation($"正在刷新{tiantangLoginInfo.PhoneNumber}的token");
+
+            string unionId = tiantangLoginInfo.UnionId;
+            JsonDocument responseJson = tiantangRemoteCallService.RefreshLogin(unionId);
+
+            string newToken = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
+            tiantangLoginInfo.AccessToken = newToken;
+            logger.LogInformation($"新token是 {newToken}");
+
             defaultDbContext.SaveChanges();
         }
 
@@ -82,8 +108,8 @@ namespace tiantang_auto_harvest.Service
             defaultDbContext.PushChannelKeys.RemoveRange(defaultDbContext.PushChannelKeys);
             List<PushChannelConfiguration> pushChannelConfigurations = new List<PushChannelConfiguration>
             {
-                new PushChannelConfiguration(NotificationChannelNames.ServerChan, setNotificationChannelRequest.ServerChan),
-                new PushChannelConfiguration(NotificationChannelNames.Bark, setNotificationChannelRequest.Bark),
+                new PushChannelConfiguration(Constants.NotificationChannelNames.ServerChan, setNotificationChannelRequest.ServerChan),
+                new PushChannelConfiguration(Constants.NotificationChannelNames.Bark, setNotificationChannelRequest.Bark),
             };
 
             defaultDbContext.UpdateRange(pushChannelConfigurations);

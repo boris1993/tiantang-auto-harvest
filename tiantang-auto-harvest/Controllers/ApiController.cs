@@ -29,6 +29,13 @@ namespace tiantang_auto_harvest.Controllers
         }
 
         [HttpPost]
+        public ActionResult ManuallyRefreshLogin()
+        {
+            appService.RefreshLogin();
+            return new EmptyResult();
+        }
+
+        [HttpPost]
         public async Task<ActionResult> VerifyCode(VerifyCodeRequest verifyCodeRequest)
         {
             await appService.VerifySMSCode(verifyCodeRequest.PhoneNumber, verifyCodeRequest.OTPCode);

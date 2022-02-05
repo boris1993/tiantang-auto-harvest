@@ -9,6 +9,7 @@
         public const string VerifySMSCodeURL = $"{BaseURL}/web/api/login";
         public const string DailyCheckInURL = $"{BaseURL}/web/api/account/sign_in";
         public const string UserInfoURL = $"{BaseURL}/web/api/account/message/loading";
+        public const string RefreshLogin = $"{BaseURL}/api/v1/login";
         public const string DevicesListURL = $"{BaseURL}/api/v1/devices";
         public const string DeviceLogsURL = $"{BaseURL}/api/v1/device_logs";
         public const string HarvestPromotionScores = $"{BaseURL}/api/v1/promote/score_logs";
