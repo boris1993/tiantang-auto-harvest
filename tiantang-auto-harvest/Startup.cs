@@ -55,18 +55,26 @@ namespace tiantang_auto_harvest
             services.AddSingleton<SigninJob>();
             services.AddSingleton<HarvestJob>();
             services.AddSingleton<ApplyBonusCardsJob>();
-            // Will sign in on 03:00 each day
+            services.AddSingleton<RefreshLoginJob>();
+            // 每日03:00签到
             services.AddSingleton(new JobSchedule(
                 jobType: typeof(SigninJob),
                 cronExpression: "0 0 3 * * ?"
             ));
+            // 每日10:00收取星愿
             services.AddSingleton(new JobSchedule(
                 jobType: typeof(HarvestJob),
                 cronExpression: "0 0 10 * * ?"
             ));
+            // 每日10:00检查并激活电费卡
             services.AddSingleton(new JobSchedule(
                 jobType: typeof(ApplyBonusCardsJob),
                 cronExpression: "0 0 10 * * ?"
+            ));
+            // 每日01:00检查是否需要刷新token
+            services.AddSingleton(new JobSchedule(
+                jobType: typeof(RefreshLoginJob),
+                cronExpression: "0 0 1 * * ?"
             ));
             services.AddHostedService<QuartzHostedService>();
             #endregion

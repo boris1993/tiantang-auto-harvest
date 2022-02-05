@@ -31,7 +31,7 @@ namespace tiantang_auto_harvest.Jobs
             {
                 var tiantangLoginInfoDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
 
-                TiantangLoginInfo tiantangLoginInfo = tiantangLoginInfoDbContext.TiantangLoginInfo.FirstOrDefault();
+                TiantangLoginInfo tiantangLoginInfo = tiantangLoginInfoDbContext.TiantangLoginInfo.SingleOrDefault();
                 if (tiantangLoginInfo == null)
                 {
                     logger.LogInformation("未登录甜糖账号，跳过签到");
