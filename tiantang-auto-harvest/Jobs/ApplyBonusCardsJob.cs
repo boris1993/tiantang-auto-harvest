@@ -32,7 +32,7 @@ namespace tiantang_auto_harvest.Jobs
             using (var scope = serviceProvider.CreateScope())
             {
                 var defaultDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
-                var tiantangLoginInfo = defaultDbContext.TiantangLoginInfo.FirstOrDefault();
+                var tiantangLoginInfo = defaultDbContext.TiantangLoginInfo.SingleOrDefault();
                 if (tiantangLoginInfo == null)
                 {
                     logger.LogInformation("未登录甜糖账号，跳过检查和使用加成卡");
@@ -97,7 +97,7 @@ namespace tiantang_auto_harvest.Jobs
                 .GetProperty("data")
                 .EnumerateArray()
                 .Where(element => element.GetProperty("name").GetString() == "电费卡")
-                .FirstOrDefault();
+                .SingleOrDefault();
 
             if (currentActivatedElectricBillBonus.ValueKind != JsonValueKind.Undefined)
             {

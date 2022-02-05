@@ -35,7 +35,7 @@ namespace tiantang_auto_harvest.Jobs
             {
                 var defaultDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
 
-                var tiantangLoginInfo = defaultDbContext.TiantangLoginInfo.FirstOrDefault();
+                var tiantangLoginInfo = defaultDbContext.TiantangLoginInfo.SingleOrDefault();
                 if (tiantangLoginInfo == null)
                 {
                     logger.LogInformation("未登录甜糖账号，跳过收取星愿");

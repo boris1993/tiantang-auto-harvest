@@ -34,7 +34,7 @@ namespace tiantang_auto_harvest.Service
 
         public async Task SendNotificationViaServerChan(NotificationBody notificationBody)
         {
-            var serverChanConfig = defaultDbContext.PushChannelKeys.Where(p => p.ServiceName == Constants.NotificationChannelNames.ServerChan).FirstOrDefault();
+            var serverChanConfig = defaultDbContext.PushChannelKeys.Where(p => p.ServiceName == Constants.NotificationChannelNames.ServerChan).SingleOrDefault();
             if (serverChanConfig == null || string.IsNullOrEmpty(serverChanConfig.Token))
             {
                 logger.LogInformation("Server酱配置为空，跳过通过Server酱发送通知");
@@ -63,7 +63,7 @@ namespace tiantang_auto_harvest.Service
 
         public async Task SendNotificationViaBark(NotificationBody notificationBody)
         {
-            var barkConfig = defaultDbContext.PushChannelKeys.Where(p => p.ServiceName == Constants.NotificationChannelNames.Bark).FirstOrDefault();
+            var barkConfig = defaultDbContext.PushChannelKeys.Where(p => p.ServiceName == Constants.NotificationChannelNames.Bark).SingleOrDefault();
             if (barkConfig == null || string.IsNullOrEmpty(barkConfig.Token))
             {
                 logger.LogInformation("Bark配置为空，跳过通过Bark发送通知");
