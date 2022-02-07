@@ -49,6 +49,7 @@ docker run \
     -p 8080:80 \
     -v /volume2/docker-data/tiantang-auto-harvest:/app/data \
     -e TZ=Asia/Shanghai \
+    -d \
     boris1993/tiantang-auto-harvest:latest
 ```
 
