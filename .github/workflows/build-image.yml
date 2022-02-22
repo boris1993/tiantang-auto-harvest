@@ -34,10 +34,10 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            boris1993/tiantang-auto-harvest:latest
-            registry.cn-hangzhou.aliyuncs.com/boris1993/tiantang-auto-harvest:latest
+            boris1993/tiantang-auto-harvest
+            registry.cn-hangzhou.aliyuncs.com/boris1993/tiantang-auto-harvest
           tags: |
-            type=raw,value=
+            type=raw,value=latest
             
       - name: Set up Docker Buildx
         id: buildx
