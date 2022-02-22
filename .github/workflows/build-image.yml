@@ -29,6 +29,14 @@ jobs:
           username: ${{ secrets.ALIYUN_USERNAME }}
           password: ${{ secrets.ALIYUN_PASSWORD }}
       
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            boris1993/tiantang-auto-harvest:latest
+            registry.cn-hangzhou.aliyuncs.com/boris1993/tiantang-auto-harvest:latest
+            
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v1.6.0
@@ -40,14 +48,6 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-      
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: |
-            boris1993/tiantang-auto-harvest:latest
-            registry.cn-hangzhou.aliyuncs.com/boris1993/tiantang-auto-harvest:latest
       
       - name: Build and push
         id: docker_build
