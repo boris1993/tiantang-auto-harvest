@@ -37,7 +37,7 @@ jobs:
             boris1993/tiantang-auto-harvest:latest
             registry.cn-hangzhou.aliyuncs.com/boris1993/tiantang-auto-harvest:latest
           tags: |
-            type=raw,value=latest
+            type=raw,value=
             
       - name: Set up Docker Buildx
         id: buildx
