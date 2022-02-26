@@ -47,3 +47,13 @@ jobs:
       - name: Archive files for Linux arm v7
         working-directory: tiantang-auto-harvest/bin/Release
         run: tar cvzf linux-arm-v7.tar.gz linux-arm-v7
+        
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with: 
+          name: ${{ github.sha }}
+          path: |
+            tiantang-auto-harvest/bin/Release/win-x64.zip
+            tiantang-auto-harvest/bin/Release/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7
