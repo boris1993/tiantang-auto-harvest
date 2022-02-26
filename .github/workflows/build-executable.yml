@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-latest-windows-executable:
+  build-executable:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,9 +29,9 @@ jobs:
         run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=linux-arm-v7
 
       - name: Archive files
-        working-directory: tiantang-auto-harvest\bin\Release
+        working-directory: tiantang-auto-harvest/bin/Release
         run: pwd && zip -r win-x64.zip win-x64
 
       - name: Show file content
-        working-directory: tiantang-auto-harvest\bin\Release
+        working-directory: tiantang-auto-harvest/bin/Release
         run: pwd && unzip -vl win-x64.zip
