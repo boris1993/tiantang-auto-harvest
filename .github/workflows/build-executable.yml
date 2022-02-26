@@ -30,7 +30,7 @@ jobs:
 
       - name: Make binary files executable
         working-directory: tiantang-auto-harvest/bin/Release
-        run: >
+        run: >-
           chmod 755 linux-x64/tiantang-auto-harvest \
           && chmod 755 linux-arm64/tiantang-auto-harvest \
           && chmod 755 linux-arm-v7/tiantang-auto-harvest
