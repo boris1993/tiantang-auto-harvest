@@ -2,7 +2,7 @@
 
 on: 
   push:
-    branches: [ master ]
+    branches: [ master, publish-single-executable ]
     paths: ['.github/workflows/build-executable.yml', 'tiantang-auto-harvest/**']
   workflow_dispatch:
     
