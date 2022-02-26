@@ -3,7 +3,7 @@
 on:
   push:
     branches: [ master, publish-single-executable ]
-#    paths: ['.github/workflows/build-executable.yml', 'tiantang-auto-harvest/**']
+  #    paths: ['.github/workflows/build-executable.yml', 'tiantang-auto-harvest/**']
   workflow_dispatch:
 
 jobs:
@@ -28,10 +28,25 @@ jobs:
       - name: Publish Linux arm-v7
         run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=linux-arm-v7
 
-      - name: Archive files
+      - name: Make binary files executable
         working-directory: tiantang-auto-harvest/bin/Release
-        run: pwd && zip -r win-x64.zip win-x64
+        run: >
+          chmod 755 linux-x64/tiantang-auto-harvest \
+          && chmod 755 linux-arm64/tiantang-auto-harvest \
+          && chmod 755 linux-arm-v7/tiantang-auto-harvest
 
-      - name: Show file content
+      - name: Archive files for Windows
         working-directory: tiantang-auto-harvest/bin/Release
-        run: pwd && unzip -vl win-x64.zip
+        run: zip -r win-x64.zip win-x64
+
+      - name: Archive files for Linux x64
+        working-directory: tiantang-auto-harvest/bin/Release
+        run: tar cvzf linux-x64.tar.gz linux-x64
+
+      - name: Archive files for Linux arm64
+        working-directory: tiantang-auto-harvest/bin/Release
+        run: tar cvzf linux-arm64.tar.gz linux-arm64
+
+      - name: Archive files for Linux arm v7
+        working-directory: tiantang-auto-harvest/bin/Release
+        run: tar cvzf linux-arm-v7.tar.gz linux-arm-v7
