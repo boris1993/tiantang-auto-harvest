@@ -1,8 +1,8 @@
-﻿name: Build and publish single executable
+﻿name: Build and publish executable
 
 on:
   push:
-    branches: [ master, fix_pipeline ]
+    branches: [ master ]
   #    paths: ['.github/workflows/build-executable.yml', 'tiantang-auto-harvest/**']
   workflow_dispatch:
 
