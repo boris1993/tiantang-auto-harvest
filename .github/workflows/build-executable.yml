@@ -3,7 +3,7 @@
 on:
   push:
     branches: [ master ]
-  #    paths: ['.github/workflows/build-executable.yml', 'tiantang-auto-harvest/**']
+    paths: ['.github/workflows/build-executable.yml', 'tiantang-auto-harvest/**']
   workflow_dispatch:
 
 jobs:

@@ -3,7 +3,6 @@ name: Build and publish the image
 on:
   push:
     branches: [ master ]
-    # Triggers only when the source code is changed
     paths: ['.github/workflows/build-image.yml', 'tiantang-auto-harvest/**']
 
 jobs:
