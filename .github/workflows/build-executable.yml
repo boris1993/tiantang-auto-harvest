@@ -1,0 +1,59 @@
+﻿name: Build and publish single executable
+
+on:
+  push:
+    branches: [ master, publish-single-executable ]
+  #    paths: ['.github/workflows/build-executable.yml', 'tiantang-auto-harvest/**']
+  workflow_dispatch:
+
+jobs:
+  build-executable:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.4.0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+
+      - name: Publish Windows x64
+        run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=win-x64
+
+      - name: Publish Linux x64
+        run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=linux-x64
+
+      - name: Publish Linux arm64
+        run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=linux-arm64
+
+      - name: Publish Linux arm-v7
+        run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=linux-arm-v7
+
+      - name: Make binary files executable
+        working-directory: tiantang-auto-harvest/bin/Release
+        run: chmod 755 linux-x64/tiantang-auto-harvest && chmod 755 linux-arm64/tiantang-auto-harvest && chmod 755 linux-arm-v7/tiantang-auto-harvest
+
+      - name: Archive files for Windows
+        working-directory: tiantang-auto-harvest/bin/Release
+        run: zip -r win-x64.zip win-x64
+
+      - name: Archive files for Linux x64
+        working-directory: tiantang-auto-harvest/bin/Release
+        run: tar cvzf linux-x64.tar.gz linux-x64
+
+      - name: Archive files for Linux arm64
+        working-directory: tiantang-auto-harvest/bin/Release
+        run: tar cvzf linux-arm64.tar.gz linux-arm64
+
+      - name: Archive files for Linux arm v7
+        working-directory: tiantang-auto-harvest/bin/Release
+        run: tar cvzf linux-arm-v7.tar.gz linux-arm-v7
+        
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with: 
+          name: ${{ github.sha }}
+          path: |
+            tiantang-auto-harvest/bin/Release/win-x64.zip
+            tiantang-auto-harvest/bin/Release/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7
