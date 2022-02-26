@@ -1,37 +1,37 @@
 ﻿name: Build and publish single executable
 
-on: 
+on:
   push:
     branches: [ master, publish-single-executable ]
 #    paths: ['.github/workflows/build-executable.yml', 'tiantang-auto-harvest/**']
   workflow_dispatch:
-    
-jobs: 
+
+jobs:
   build-latest-windows-executable:
     runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2.4.0
-        
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v2
-        
+
       - name: Publish Windows x64
-        run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=win-x64
+        run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=win-x64 --nologo
 
       - name: Publish Linux x64
-        run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=linux-x64
-        
+        run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=linux-x64 --nologo
+
       - name: Publish Linux arm64
-        run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=linux-arm64
-        
+        run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=linux-arm64 --nologo
+
       - name: Publish Linux arm-v7
-        run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=linux-arm-v7
-        
+        run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=linux-arm-v7 --nologo
+
       - name: Archive files
         working-directory: tiantang-auto-harvest\bin\Release
-        run: pwd && zip -r win-x64.zip win-x64
-        
+        run: Compress-Archive -Path win-x64 -DestinationPath win-x64.zip 
+
       - name: Show file content
         working-directory: tiantang-auto-harvest\bin\Release
-        run: pwd && unzip -vl win-x64.zip
+        run: (Add-Type -assembly "system.io.compression.filesystem") -and ([io.compression.zipfile]::OpenRead(win-x64.zip).Entries.Names)
