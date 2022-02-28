@@ -10,7 +10,13 @@
                 <div class="border-top border-bottom border-left border-right" style="padding: 6px; margin: 0 auto; width: 350px; text-align: left;">
                     <div style="padding-bottom: 10px;">
                         <label style="width: 80px; text-align: right;">手机号码</label>
-                        <input type="text" id="phone_number" name="phone_number" autocomplete="off" style="width: 110px" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')" />
+                        <input type="text"
+                               id="phone_number"
+                               name="phone_number"
+                               autocomplete="off"
+                               style="width: 110px"
+                               onkeyup="this.value=this.value.replace(/\D/g,'')"
+                               onafterpaste="this.value=this.value.replace(/\D/g,'')"/>
                         <input type="button" id="get_sms_code" value="获取手机验证码" onclick="sendSMSCode()" style="width: 130px;" />
                     </div>
                     <div style="padding-bottom: 10px;">
@@ -39,7 +45,7 @@
                     </div>
                     <div style="text-align: center; padding-bottom: 10px;">
                         <input type="button" id="update_keys" value="更新" onclick="updateNotificationKeys()" style="width: 40%;" />
-                        <input type="button" id="update_keys" value="测试" onclick="testNotificationKeys()" style="width: 40%;" />
+                        <input type="button" id="test_notification" value="测试" onclick="testNotificationKeys()" style="width: 40%;" />
                     </div>
                     <hr />
                     <div style="text-align: center;">
@@ -52,164 +58,3 @@
         </td>
     </tr>
 </table>
-
-<script type="text/javascript">
-    function sendSMSCode() {
-        var phoneNumber = document.getElementById("phone_number").value;
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/SendSMS", true);
-        xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.send(JSON.stringify({
-            phoneNumber: phoneNumber
-        }));
-
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                if (xhr.status == 400) {
-                    var responseJson = JSON.parse(xhr.responseText);
-                    var errorMessages = responseJson["errors"]["PhoneNumber"];
-
-                    var alertMessage = "";
-                    for (i = 0; i < errorMessages.length; i++) {
-                        alertMessage += errorMessages[i] + "\n";
-                    }
-
-                    alert(alertMessage);
-                    return;
-                } else if (xhr.status != 200) {
-                    var alertMessage = "服务器出现错误：\n" + xhr.responseText;
-                    alert(alertMessage);
-                    return;
-                }
-            }
-        }
-    }
-
-    function verifySMSCode() {
-        var phoneNumber = document.getElementById("phone_number").value;
-        var smsCode = document.getElementById("sms_code").value;
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/VerifyCode", true);
-        xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.send(JSON.stringify({
-            phoneNumber: phoneNumber,
-            otpCode: smsCode
-        }));
-
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                if (xhr.status == 400) {
-                    var alertMessage = "";
-
-                    var responseJson = JSON.parse(xhr.responseText);
-                    var errorMessages = responseJson["errors"]["PhoneNumber"];
-                    for (i = 0; i < errorMessages.length; i++) {
-                        alertMessage += errorMessages[i] + "\n";
-                    }
-
-                    errorMessages = responseJson["errors"]["OTPCode"];
-                    for (i = 0; i < errorMessages.length; i++) {
-                        alertMessage += errorMessages[i] + "\n";
-                    }
-
-                    alert(alertMessage);
-
-                    return;
-                } else if (xhr.status != 200) {
-                    var alertMessage = "服务器出现错误：\n" + xhr.responseText;
-                    alert(alertMessage);
-
-                    return;
-                }
-
-                window.location.reload();
-            }
-        }
-    }
-
-    function getCurrentLogin() {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "/api/GetLoginInfo", true);
-        xhr.send();
-
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                var responseText = xhr.responseText;
-                if (xhr.status != 200) {
-                    var alertMessage = "服务器出现错误：\n" + responseText;
-                    alert(alertMessage);
-                    return;
-                }
-
-                if (responseText) {
-                    var responseJson = JSON.parse(responseText);
-                    var currentPhoneNumber = responseJson["phoneNumber"];
-                    document.getElementById("current_phone_number").innerHTML = currentPhoneNumber;
-                }
-            }
-        }
-    }
-
-    function updateNotificationKeys() {
-        var serverChanSendKey = document.getElementById("server_chan_send_key").value;
-        var barkToken = document.getElementById("bark_token").value;
-
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/UpdateNotificationChannels", true);
-        xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.send(JSON.stringify({
-            ServerChan: serverChanSendKey,
-            Bark: barkToken
-        }));
-
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                if (xhr.status != 200) {
-                    var alertMessage = "服务器出现错误：\n" + xhr.responseText;
-                    alert(alertMessage);
-                    return;
-                }
-
-                window.location.reload();
-            }
-        }
-    }
-
-    function testNotificationKeys() {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "/api/TestNotificationChannels", true);
-        xhr.send();
-    }
-
-    function loadNotificationKeys() {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "/api/GetNotificationKeys", true);
-        xhr.send();
-
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                var responseText = xhr.responseText;
-                if (xhr.status != 200) {
-                    var alertMessage = "服务器出现错误：\n" + responseText;
-                    alert(alertMessage);
-                    return;
-                }
-
-                if (responseText) {
-                    var responseJson = JSON.parse(responseText);
-
-                    var serverChanSendKey = responseJson["serverChan"];
-                    var barkToken = responseJson["bark"];
-
-                    document.getElementById("server_chan_send_key").value = serverChanSendKey;
-                    document.getElementById("bark_token").value = barkToken;
-                }
-            }
-        }
-    }
-
-    window.onload = function () {
-        getCurrentLogin();
-        loadNotificationKeys();
-    }
-</script>
