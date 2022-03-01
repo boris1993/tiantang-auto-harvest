@@ -87,7 +87,7 @@ function getCurrentLogin() {
 
             if (responseText) {
                 let responseJson = JSON.parse(responseText);
-                document.getElementById("current_phone_number").innerHTML = responseJson["phoneNumber"];
+                document.getElementById("current_phone_number").value = responseJson["phoneNumber"];
             }
         }
     }
