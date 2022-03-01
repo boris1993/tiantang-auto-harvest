@@ -5,7 +5,26 @@
     <RootNamespace>tiantang_auto_harvest</RootNamespace>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <StartupObject>tiantang_auto_harvest.Program</StartupObject>
+    <PackageIcon>favicon.ico</PackageIcon>
+    <Title>tiantang-auto-harvest</Title>
+    <Authors>boris1993</Authors>
+    <RepositoryUrl>https://github.com/boris1993/tiantang-auto-harvest</RepositoryUrl>
+    <RepositoryType></RepositoryType>
+    <Company>com.boris1993</Company>
+    <ApplicationIcon>wwwroot\favicon.ico</ApplicationIcon>
+    <Nullable>warnings</Nullable>
+    <SignAssembly>False</SignAssembly>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0" />
