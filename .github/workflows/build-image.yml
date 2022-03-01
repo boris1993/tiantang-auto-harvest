@@ -3,7 +3,7 @@ name: Build and publish the image
 on:
   push:
     branches: [ master ]
-    paths: ['.github/workflows/build-image.yml', 'tiantang-auto-harvest/**']
+    paths: ['tiantang-auto-harvest/**']
 
 jobs:
   build-latest-dev:
