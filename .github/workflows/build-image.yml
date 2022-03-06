@@ -2,8 +2,8 @@ name: Build and publish the image
 
 on:
   push:
-    branches: [ master, armv7-image ]
-    paths: ['tiantang-auto-harvest/**', '.github/workflows/build-image.yml']
+    branches: [ master ]
+    paths: ['tiantang-auto-harvest/**']
 
 jobs:
   build-latest-dev:
