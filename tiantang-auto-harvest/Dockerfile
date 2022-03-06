@@ -13,7 +13,15 @@ WORKDIR "/src/tiantang-auto-harvest"
 RUN dotnet build "tiantang-auto-harvest.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "tiantang-auto-harvest.csproj" -c Release -o /app/publish
+ARG TARGETPLATFORM
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+        RID=linux-x64 ; \
+    elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+        RID=linux-arm64 ; \
+    elif [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then \
+        RID=linux-arm ; \
+    fi \
+    && dotnet publish "tiantang-auto-harvest.csproj" -c Release -o /app/publish -r $RID 
 
 FROM base AS final
 WORKDIR /app
