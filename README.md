@@ -54,6 +54,8 @@ docker run \
     boris1993/tiantang-auto-harvest:latest
 ```
 
+如果从Docker Hub拉取镜像过慢，那么你也可以使用`registry.cn-hangzhou.aliyuncs.com/boris1993/tiantang-auto-harvest:latest`来从阿里云拉取。
+
 再启动后，需要访问容器的端口（如上例中的`8080`）进入配置页面。在配置页面中你需要通过手机验证码登录。
 
 如果有需要，那么可以填写`Server酱`和`Bark`的token，配置后即可收到通知。
@@ -61,9 +63,20 @@ docker run \
 
 - 每日收取的星愿数
 
+# `arm v7`平台的用户需要注意
+
+对于`arm v7`用户，如果你用上述命令无法启动，具体表现为容器反复重启，那么请删掉容器，然后执行如下命令以进入容器的`bash` shell：
+```shell
+docker run -it --rm --entrypoint /bin/bash boris1993/tiantang-auto-harvest:latest
+```
+然后在容器的shell内执行 `dotnet tiantang-auto-harvest.dll`，
+如果出现错误信息 `Aborted (core dumped)`，那么请在上述启动命令的参数中加上`--privileged`。
+
 # 推广码
 
 如果你觉得这个工具好用，那么可不可以填一下我的邀请码`804744`，互惠互利？
+
+![赞赏码](https://sat02pap001files.storage.live.com/y4mc9DXtRErXTWqB4T-e4MbNjh8grVux4vhbiUog6R_WOAWuI-pC2YbUxXi4-r5b-EaskCfAmnq7jLniVtelO423EbVYODuQX24u_QGlCzTj2yiiu1gUhCpc1bAH5srf2Tm5uC3eqESMz9ziyfkQKAUOhdXNNLTsvnWDm5rgBXjHM5eTyp1A3bcnXKHBRtdAFax?width=256&height=256&cropmode=none)
 
 # 许可协议
 
