@@ -21,7 +21,7 @@ RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
     elif [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then \
         RID=linux-arm ; \
     fi \
-    && dotnet publish "tiantang-auto-harvest.csproj" -c Release -o /app/publish -r $RID 
+    && dotnet publish "tiantang-auto-harvest.csproj" -c Release -o /app/publish -r $RID --no-self-contained
 
 FROM base AS final
 WORKDIR /app
