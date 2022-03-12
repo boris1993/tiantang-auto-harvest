@@ -28,6 +28,12 @@ jobs:
       - name: Install dotnet-setversion
         run: dotnet tool install --global dotnet-setversion
 
+      - name: Test GitVersion
+        run: dotnet-gitversion -ShowVariable MajorMinorPatch
+        
+      - name: Test serversion
+        run: setversion 0.0.1-test ./tiantang-auto-harvest/tiantang-auto-harvest.csproj
+
       - name: Set release version on tagging
         if: startsWith(github.ref, 'refs/tags/')
         run: echo "$GITHUB_REF_NAME" && setversion "$GITHUB_REF_NAME" ./tiantang-auto-harvest/tiantang-auto-harvest.csproj
