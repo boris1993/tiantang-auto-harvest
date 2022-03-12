@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Quartz;
-using System;
+﻿using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Quartz;
 using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Service;
@@ -32,7 +32,7 @@ namespace tiantang_auto_harvest.Jobs
             using (var scope = serviceProvider.CreateScope())
             {
                 var defaultDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
-                var tiantangLoginInfo = defaultDbContext.TiantangLoginInfo.SingleOrDefault();
+                var tiantangLoginInfo = defaultDbContext!.TiantangLoginInfo.SingleOrDefault();
                 if (tiantangLoginInfo == null)
                 {
                     logger.LogInformation("未登录甜糖账号，跳过检查和使用加成卡");
@@ -46,7 +46,7 @@ namespace tiantang_auto_harvest.Jobs
                 {
                     activatedBonusCardResponse = tiantangRemoteCallService.RetrieveActivatedBonusCards(_accessToken);
                 }
-                catch (ExternalAPICallException)
+                catch (ExternalApiCallException)
                 {
                     logger.LogError("获取当前启用的加成卡失败，请参考日志");
                     return Task.CompletedTask;
@@ -57,7 +57,7 @@ namespace tiantang_auto_harvest.Jobs
                 {
                     allBonusCardsResponse = tiantangRemoteCallService.RetrieveAllBonusCards(_accessToken);
                 }
-                catch (ExternalAPICallException)
+                catch (ExternalApiCallException)
                 {
                     logger.LogError("获取全部加成卡失败，请参考日志");
                     return Task.CompletedTask;

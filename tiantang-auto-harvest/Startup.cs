@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -5,13 +8,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
-using System;
-using System.IO;
-using System.Net;
 using tiantang_auto_harvest.EventListeners;
 using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Jobs;
@@ -37,19 +36,21 @@ namespace tiantang_auto_harvest
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            services.AddDbContext<DefaultDbContext>(options => options.UseSqlite($"Data Source={AppContext.BaseDirectory}/data/database.db"));
+            services.AddDbContext<DefaultDbContext>(options =>
+                options.UseSqlite($"Data Source={AppContext.BaseDirectory}/data/database.db"));
 
             services.AddScoped<AppService>();
             services.AddScoped<NotificationRemoteCallService>();
             services.AddHttpClient<AppService>(client =>
             {
-                client.BaseAddress = new Uri(Constants.TiantangBackendURLs.BaseURL);
+                client.BaseAddress = new Uri(Constants.TiantangBackendURLs.BaseUrl);
                 client.Timeout = TimeSpan.FromSeconds(10);
             });
             services.AddSingleton<TiantangRemoteCallService>();
             services.AddSingleton<ScoreLoadedEventHandler>();
 
             #region Quartz Configurations
+
             services.AddSingleton<IJobFactory, QuartzJobFactory>();
             services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
             services.AddSingleton<SigninJob>();
@@ -77,6 +78,7 @@ namespace tiantang_auto_harvest
                 cronExpression: "0 0 1 * * ?"
             ));
             services.AddHostedService<QuartzHostedService>();
+
             #endregion
         }
 
@@ -87,22 +89,22 @@ namespace tiantang_auto_harvest
             DefaultDbContext defaultDbContext
         )
         {
-            app.UseExceptionHandler(app => app.Run(async context =>
+            app.UseExceptionHandler(applicationBuilder => applicationBuilder.Run(async context =>
             {
-                Exception exception = context.Features.Get<IExceptionHandlerPathFeature>().Error;
-                ErrorResponse errorResponseBody = new ErrorResponse(exception.Message);
+                var exception = context.Features.Get<IExceptionHandlerPathFeature>()?.Error;
+                var errorResponseBody = new ErrorResponse(exception?.Message);
 
                 HttpStatusCode statusCode;
                 if (exception is BaseAppException)
                 {
-                    statusCode = ((BaseAppException)exception).ResponseStatusCode;
+                    statusCode = ((BaseAppException) exception).ResponseStatusCode;
                 }
                 else
                 {
                     statusCode = HttpStatusCode.InternalServerError;
                 }
 
-                context.Response.StatusCode = (int)statusCode;
+                context.Response.StatusCode = (int) statusCode;
                 await context.Response.WriteAsJsonAsync(errorResponseBody);
             }));
 

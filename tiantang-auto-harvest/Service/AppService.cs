@@ -1,12 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Models.Requests;
@@ -40,7 +40,7 @@ namespace tiantang_auto_harvest.Service
         {
             logger.LogInformation($"正在向 {phoneNumber} 发送验证码短信");
 
-            UriBuilder uriBuilder = new UriBuilder(Constants.TiantangBackendURLs.SendSMSURL);
+            UriBuilder uriBuilder = new UriBuilder(Constants.TiantangBackendURLs.SendSmsUrl);
             uriBuilder.Query = $"phone={phoneNumber}";
             Uri uri = uriBuilder.Uri;
 
@@ -54,7 +54,7 @@ namespace tiantang_auto_harvest.Service
         {
             logger.LogInformation($"正在校验验证码 {smsCode}");
 
-            UriBuilder uriBuilder = new UriBuilder(Constants.TiantangBackendURLs.VerifySMSCodeURL);
+            UriBuilder uriBuilder = new UriBuilder(Constants.TiantangBackendURLs.VerifySmsCodeUrl);
             uriBuilder.Query = $"phone={phoneNumber}&authCode={smsCode}";
             Uri uri = uriBuilder.Uri;
 
@@ -108,8 +108,15 @@ namespace tiantang_auto_harvest.Service
             defaultDbContext.PushChannelKeys.RemoveRange(defaultDbContext.PushChannelKeys);
             List<PushChannelConfiguration> pushChannelConfigurations = new List<PushChannelConfiguration>
             {
-                new PushChannelConfiguration(Constants.NotificationChannelNames.ServerChan, setNotificationChannelRequest.ServerChan),
-                new PushChannelConfiguration(Constants.NotificationChannelNames.Bark, setNotificationChannelRequest.Bark),
+                new(Constants.NotificationChannelNames.ServerChan,
+                    setNotificationChannelRequest.ServerChan),
+                
+                new(Constants.NotificationChannelNames.Bark,
+                    setNotificationChannelRequest.Bark),
+                
+                new(Constants.NotificationChannelNames.DingTalk,
+                    setNotificationChannelRequest.DingTalk.AccessToken, 
+                    setNotificationChannelRequest.DingTalk.Secret)
             };
 
             defaultDbContext.UpdateRange(pushChannelConfigurations);
@@ -147,6 +154,13 @@ namespace tiantang_auto_harvest.Service
                     case Constants.NotificationChannelNames.Bark:
                         response.Bark = pushChannelConfiguration.Token;
                         break;
+                    case Constants.NotificationChannelNames.DingTalk:
+                        response.DingTalk = new SetNotificationChannelRequest.DingTalkToken
+                        {
+                            AccessToken = pushChannelConfiguration.Token,
+                            Secret = pushChannelConfiguration.Secret
+                        };
+                        break;
                     default:
                         logger.LogWarning($"未知的通知渠道{pushChannelConfiguration.ServiceName}");
                         break;
@@ -166,15 +180,14 @@ namespace tiantang_auto_harvest.Service
 
             if (statusCode != HttpStatusCode.OK)
             {
-
                 logger.LogError($"请求失败，HTTP返回码 {statusCode} ，错误信息：{errorMessage}");
-                throw new ExternalAPICallException(errorMessage, statusCode);
+                throw new ExternalApiCallException(errorMessage, statusCode);
             }
 
             if (errCode != 0)
             {
                 logger.LogError($"甜糖API返回码不为0，错误信息：{errorMessage}");
-                throw new ExternalAPICallException(errorMessage);
+                throw new ExternalApiCallException(errorMessage);
             }
         }
     }

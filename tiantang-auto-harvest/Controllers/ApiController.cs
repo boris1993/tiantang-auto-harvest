@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Models.Requests;
 using tiantang_auto_harvest.Models.Responses;
@@ -12,40 +12,40 @@ namespace tiantang_auto_harvest.Controllers
     [Route("[controller]/[action]")]
     public class ApiController : ControllerBase
     {
-        private readonly ILogger<ApiController> logger;
-        private readonly AppService appService;
+        private readonly ILogger<ApiController> _logger;
+        private readonly AppService _appService;
 
         public ApiController(ILogger<ApiController> logger, AppService appService)
         {
-            this.logger = logger;
-            this.appService = appService;
+            _logger = logger;
+            _appService = appService;
         }
 
         [HttpPost]
-        public async Task<ActionResult> SendSMS(SendSMSRequest sendSMSRequest)
+        public async Task<ActionResult> SendSms(SendSMSRequest sendSmsRequest)
         {
-            await appService.RetrieveSMSCode(sendSMSRequest.PhoneNumber);
+            await _appService.RetrieveSMSCode(sendSmsRequest.PhoneNumber);
             return new EmptyResult();
         }
 
         [HttpPost]
         public ActionResult ManuallyRefreshLogin()
         {
-            appService.RefreshLogin();
+            _appService.RefreshLogin();
             return new EmptyResult();
         }
 
         [HttpPost]
         public async Task<ActionResult> VerifyCode(VerifyCodeRequest verifyCodeRequest)
         {
-            await appService.VerifySMSCode(verifyCodeRequest.PhoneNumber, verifyCodeRequest.OTPCode);
+            await _appService.VerifySMSCode(verifyCodeRequest.PhoneNumber, verifyCodeRequest.OTPCode);
             return new EmptyResult();
         }
 
         [HttpGet]
         public ActionResult GetLoginInfo(bool showToken = false)
         {
-            TiantangLoginInfo tiantangLoginInfo = appService.GetCurrentLoginInfo();
+            TiantangLoginInfo tiantangLoginInfo = _appService.GetCurrentLoginInfo();
             if (tiantangLoginInfo == null)
             {
                 return new EmptyResult();
@@ -68,21 +68,21 @@ namespace tiantang_auto_harvest.Controllers
         [HttpPost]
         public ActionResult UpdateNotificationChannels(SetNotificationChannelRequest setNotificationChannelRequest)
         {
-            appService.UpdateNotificationKeys(setNotificationChannelRequest);
+            _appService.UpdateNotificationKeys(setNotificationChannelRequest);
             return new EmptyResult();
         }
 
         [HttpGet]
         public async Task<ActionResult> TestNotificationChannels()
         {
-            await appService.TestNotificationChannels();
+            await _appService.TestNotificationChannels();
             return new EmptyResult();
         }
 
         [HttpGet]
         public ActionResult GetNotificationKeys()
         {
-            return new JsonResult(appService.GetNotificationKeys());
+            return new JsonResult(_appService.GetNotificationKeys());
         }
     }
 }

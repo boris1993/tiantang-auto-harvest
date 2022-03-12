@@ -96,13 +96,19 @@ function getCurrentLogin() {
 function updateNotificationKeys() {
     let serverChanSendKey = document.getElementById("server_chan_send_key").value;
     let barkToken = document.getElementById("bark_token").value;
-
+    let dingTalkAccessToken = document.getElementById('dingtalk_token').value;
+    let dingTalkSecret = document.getElementById('dingtalk_secret').value;
+    
     let xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/UpdateNotificationChannels", true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.send(JSON.stringify({
         ServerChan: serverChanSendKey,
-        Bark: barkToken
+        Bark: barkToken,
+        DingTalk: {
+            AccessToken: dingTalkAccessToken,
+            Secret: dingTalkSecret
+        }
     }));
 
     xhr.onreadystatechange = function () {
@@ -143,9 +149,15 @@ function loadNotificationKeys() {
 
                 let serverChanSendKey = responseJson["serverChan"];
                 let barkToken = responseJson["bark"];
+                
+                let dingTalk = responseJson["dingTalk"];
+                let dingTalkAccessToken = dingTalk ? dingTalk["accessToken"] : "";
+                let dingTalkSecret = dingTalk ? dingTalk["secret"] : "";
 
                 document.getElementById("server_chan_send_key").value = serverChanSendKey;
                 document.getElementById("bark_token").value = barkToken;
+                document.getElementById("dingtalk_token").value = dingTalkAccessToken;
+                document.getElementById("dingtalk_secret").value = dingTalkSecret;
             }
         }
     }
