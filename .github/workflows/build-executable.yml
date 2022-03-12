@@ -17,19 +17,22 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v2
 
-      - name: Install GitVersion
-        run: dotnet tool install --global GitVersion.Tool --version 5.*
-        
-      - name: Install dotnet-setversion
-        run: dotnet tool install --global dotnet-setversion
-        
-      - name: Set release version on tagging
-        if: startsWith(github.ref, 'refs/tags/')
-        run: echo "$GITHUB_REF_NAME" && setversion "$GITHUB_REF_NAME" ./tiantang-auto-harvest/tiantang-auto-harvest.csproj
-        
-      - name: Set feature version on committing to branch
-        if: startsWith(github.ref, 'refs/heads/')
-        run: echo "$GITHUB_REF_NAME" && setversion "$(dotnet-gitversion -ShowVariable MajorMinorPatch)-${GITHUB_REF_NAME}" ./tiantang-auto-harvest/tiantang-auto-harvest.csproj
+#      - name: Install GitVersion
+#        run: dotnet tool install --global GitVersion.Tool --version 5.*
+#        
+#      - name: Install dotnet-setversion
+#        run: dotnet tool install --global dotnet-setversion
+#        
+#      - name: Set release version on tagging
+#        if: startsWith(github.ref, 'refs/tags/')
+#        run: echo "$GITHUB_REF_NAME" && setversion "$GITHUB_REF_NAME" ./tiantang-auto-harvest/tiantang-auto-harvest.csproj
+#        
+#      - name: Set feature version on committing to branch
+#        if: startsWith(github.ref, 'refs/heads/')
+#        run: echo "$GITHUB_REF_NAME" && setversion "$(dotnet-gitversion -ShowVariable MajorMinorPatch)-${GITHUB_REF_NAME}" ./tiantang-auto-harvest/tiantang-auto-harvest.csproj
+      
+      - name: GitTools
+        uses: GitTools/actions@v0.9.11
 
       - name: Publish Windows x64
         run: dotnet build -c Release -p:DeployOnBuild=true -p:PublishProfile=win-x64
