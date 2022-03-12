@@ -1,11 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Quartz;
-using System;
+﻿using System;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Quartz;
 using tiantang_auto_harvest.Extensions;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Service;
@@ -33,10 +33,11 @@ namespace tiantang_auto_harvest.Jobs
             using (var scope = _serviceProvider.CreateScope())
             {
                 var defaultDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
-                var tiantangLoginInfo = defaultDbContext.TiantangLoginInfo.SingleOrDefault();
+                var tiantangLoginInfo = defaultDbContext!.TiantangLoginInfo.SingleOrDefault();
                 if (tiantangLoginInfo == null)
                 {
                     _logger.LogInformation("无甜糖星愿登录信息，跳过自动刷新登录");
+                    return Task.CompletedTask;
                 }
 
                 var accessToken = tiantangLoginInfo.AccessToken;

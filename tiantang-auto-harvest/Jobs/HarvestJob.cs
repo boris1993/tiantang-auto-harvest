@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Quartz;
-using System;
+﻿using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Quartz;
 using tiantang_auto_harvest.EventListeners;
 using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Models;
@@ -35,7 +35,7 @@ namespace tiantang_auto_harvest.Jobs
             {
                 var defaultDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
 
-                var tiantangLoginInfo = defaultDbContext.TiantangLoginInfo.SingleOrDefault();
+                var tiantangLoginInfo = defaultDbContext!.TiantangLoginInfo.SingleOrDefault();
                 if (tiantangLoginInfo == null)
                 {
                     logger.LogInformation("未登录甜糖账号，跳过收取星愿");
@@ -51,7 +51,7 @@ namespace tiantang_auto_harvest.Jobs
                 {
                     responseJson = tiantangRemoteCallService.RetrieveUserInfo(tiantangLoginInfo.AccessToken);
                 }
-                catch (ExternalAPICallException)
+                catch (ExternalApiCallException)
                 {
                     logger.LogError("获取用户信息失败，请参考日志");
                     return Task.CompletedTask;
@@ -64,7 +64,7 @@ namespace tiantang_auto_harvest.Jobs
                 {
                     responseJson = tiantangRemoteCallService.RetrieveNodes(tiantangLoginInfo.AccessToken);
                 }
-                catch (ExternalAPICallException)
+                catch (ExternalApiCallException)
                 {
                     logger.LogError("获取节点列表失败，请参考日志");
                     return Task.CompletedTask;

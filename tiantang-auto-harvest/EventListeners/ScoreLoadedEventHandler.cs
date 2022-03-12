@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using tiantang_auto_harvest.Jobs;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Service;
@@ -57,7 +57,7 @@ namespace tiantang_auto_harvest.EventListeners
             using (var scope = serviceProvider.CreateScope())
             {
                 var notificationRemoteCallService = scope.ServiceProvider.GetService<NotificationRemoteCallService>();
-                await notificationRemoteCallService.SendNotificationToAllChannels(
+                await notificationRemoteCallService!.SendNotificationToAllChannels(
                     new NotificationBody(
                         $"今日已收取{tiantangScores.PromotionScore + totalDeviceScores}点星愿\n" +
                         $"包括{tiantangScores.PromotionScore}点推广星愿，和{totalDeviceScores}点设备星愿"));
@@ -71,12 +71,15 @@ namespace tiantang_auto_harvest.EventListeners
         {
             var serviceProvider = app.ApplicationServices;
             var harvestJob = serviceProvider.GetService<HarvestJob>();
+            
             // 监听星愿检查完成事件
-            harvestJob.ScoresLoadedEventHandler += async (sender, args) =>
+            async void OnScoresLoadedEventHandler(object sender, EventArgs args)
             {
                 var handler = serviceProvider.GetService<ScoreLoadedEventHandler>();
-                await handler.HandleScoresLoadedEvent(sender, args);
-            };
+                await handler!.HandleScoresLoadedEvent(sender, args);
+            }
+
+            harvestJob!.ScoresLoadedEventHandler += OnScoresLoadedEventHandler;
 
         }
     }

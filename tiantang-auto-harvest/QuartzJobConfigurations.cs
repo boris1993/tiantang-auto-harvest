@@ -1,11 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Quartz;
-using Quartz.Spi;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Quartz;
+using Quartz.Spi;
 
 namespace tiantang_auto_harvest
 {
@@ -75,7 +75,7 @@ namespace tiantang_auto_harvest
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            await Scheduler?.Shutdown(cancellationToken);
+            await Scheduler?.Shutdown(cancellationToken)!;
         }
 
         private static IJobDetail CreateJob(JobSchedule schedule)
@@ -83,7 +83,7 @@ namespace tiantang_auto_harvest
             var jobType = schedule.JobType;
             return JobBuilder
                 .Create(jobType)
-                .WithIdentity(jobType.FullName)
+                .WithIdentity(jobType.FullName ?? jobType.Name)
                 .WithDescription(jobType.Name)
                 .Build();
         }

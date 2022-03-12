@@ -7,7 +7,7 @@
         <div class="col-sm-6" id="div-login">
             <div>
                 <h1 class="title text-center">获取Token</h1>
-                <form class="border form-padding-top">
+                <form class="border padding-top">
                     <div class="form-group row align-items-center margin-left-right">
                         <label for="phone_number" class="col-4 col-form-label text-right no-left-padding">手机号码</label>
                         <div class="col-4 no-left-padding">
@@ -45,19 +45,94 @@
         <div class="col-sm-6" id="div-push-keys">
             <div>
                 <h1 class="title text-center">注册通知通道</h1>
-                <form class="border form-padding-top">
-                    <div class="form-group row align-items-center margin-left-right">
-                        <label for="server_chan_send_key" class="col-3 col-form-label text-right no-left-padding">Server酱</label>
-                        <div class="col-9 no-left-padding">
-                            <input autocomplete="off" class="form-control" id="server_chan_send_key" name="server_chan_send_key" type="text"/>
+                <form class="border padding-top padding-left-right">
+                    <div class="accordion padding-bottom" id="notification_channels_accordion">
+                        <!-- region ServerChan -->
+                        <div class="card border-bottom">
+                            <div class="card-header" id="header_server_chan">
+                                <h2 class="mb-0">
+                                    <button class="btn btn-link collapsed"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#server_chan_configuration"
+                                            aria-expanded="false"
+                                            aria-controls="server_chan_configuration">
+                                        Server酱
+                                    </button>
+                                </h2>
+                            </div>
+                            <div id="server_chan_configuration"
+                                 class="collapse"
+                                 aria-labelledby="header_server_chan">
+                                <div class="card-body">
+                                    <label for="server_chan_send_key">Send key</label>
+                                    <input autocomplete="off" class="form-control" id="server_chan_send_key" name="server_chan_send_key" type="text"/>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group row align-items-center margin-left-right">
-                        <label for="bark_token" class="col-3 col-form-label text-right no-left-padding">Bark</label>
-                        <div class="col-9 no-left-padding">
-                            <input autocomplete="off" class="form-control" id="bark_token" name="bark_token" type="text"/>
+                        <!-- endregion -->
+
+                        <!-- region Bark -->
+                        <div class="card border-bottom">
+                            <div class="card-header" id="header_bark">
+                                <h2 class="mb-0">
+                                    <button class="btn btn-link collapsed"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#bark_configuration"
+                                            aria-expanded="false"
+                                            aria-controls="bark_configuration">
+                                        Bark
+                                    </button>
+                                </h2>
+                            </div>
+                            <div id="bark_configuration"
+                                 class="collapse"
+                                 aria-labelledby="header_bark">
+                                <div class="card-body">
+                                    <label for="bark_token">Token</label>
+                                    <input autocomplete="off" class="form-control" id="bark_token" name="bark_token" type="text"/>
+                                </div>
+                            </div>
                         </div>
+                        <!-- endregion -->
+
+                        <!-- region DingTalk -->
+                        <div class="card border-bottom">
+                            <div class="card-header" id="header_ding_talk">
+                                <h2 class="mb-0">
+                                    <button class="btn btn-link collapsed"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#ding_talk_configuration"
+                                            aria-expanded="false"
+                                            aria-controls="ding_talk_configuration">
+                                        钉钉机器人
+                                    </button>
+                                </h2>
+                            </div>
+                            <div id="ding_talk_configuration"
+                                 class="collapse"
+                                 aria-labelledby="header_ding_talk">
+                                <div class="card-body">
+                                    <label for="dingtalk_token">Access Token</label>
+                                    <input autocomplete="off" class="form-control" id="dingtalk_token" name="dingtalk_token" type="text"/>
+
+                                    <label for="dingtalk_secret">Secret</label>
+                                    <input autocomplete="off" class="form-control" id="dingtalk_secret" name="dingtalk_secret" type="text"/>
+                                    
+                                    <hr/>
+                                    <div class="col-12 text-center">
+                                        <lable>钉钉机器人的 access token 和 secret 必须同时设定</lable>
+                                        <br/>
+                                        <lable>否则通知将无法发送</lable>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- endregion -->
                     </div>
+
                     <div class="form-group row align-items-center margin-left-right">
                         <div class="col-6">
                             <input class="btn-block" type="button" id="update_keys" value="更新" onclick="updateNotificationKeys()"/>

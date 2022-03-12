@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using tiantang_auto_harvest.Exceptions;
 
 namespace tiantang_auto_harvest.Service
@@ -29,17 +29,17 @@ namespace tiantang_auto_harvest.Service
 
         public JsonDocument DailyCheckIn(string accessToken)
         {
-            return SendRequest(new Uri(Constants.TiantangBackendURLs.DailyCheckInURL), HttpMethod.Post, accessToken);
+            return SendRequest(new Uri(Constants.TiantangBackendURLs.DailyCheckInUrl), HttpMethod.Post, accessToken);
         }
 
         public JsonDocument RetrieveUserInfo(string accessToken)
         {
-            return SendRequest(new Uri(Constants.TiantangBackendURLs.UserInfoURL), HttpMethod.Post, accessToken);
+            return SendRequest(new Uri(Constants.TiantangBackendURLs.UserInfoUrl), HttpMethod.Post, accessToken);
         }
 
         public JsonDocument RetrieveNodes(string accessToken)
         {
-            return SendRequest(new Uri(Constants.TiantangBackendURLs.DevicesListURL), HttpMethod.Get, accessToken);
+            return SendRequest(new Uri(Constants.TiantangBackendURLs.DevicesListUrl), HttpMethod.Get, accessToken);
         }
 
         public JsonDocument HarvestPromotionScore(int promotionScore, string accessToken)
@@ -125,13 +125,13 @@ namespace tiantang_auto_harvest.Service
             {
                 HttpStatusCode statusCode = response.StatusCode;
                 logger.LogError($"请求失败，HTTP返回码 {statusCode} ，错误信息：{errorMessage}");
-                throw new ExternalAPICallException(errorMessage, statusCode);
+                throw new ExternalApiCallException(errorMessage, statusCode);
             }
 
             if (errCode != 0)
             {
                 logger.LogError($"甜糖API返回码不为0，错误信息：{errorMessage}");
-                throw new ExternalAPICallException(errorMessage);
+                throw new ExternalApiCallException(errorMessage);
             }
         }
     }

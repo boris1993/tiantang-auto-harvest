@@ -8,7 +8,7 @@ namespace tiantang_auto_harvest.Exceptions
     /// </summary>
     public abstract class BaseAppException : Exception
     {
-        public HttpStatusCode ResponseStatusCode { get; set; }
+        public HttpStatusCode ResponseStatusCode { get; }
 
         public BaseAppException(string message) : base(message)
         {
@@ -26,12 +26,12 @@ namespace tiantang_auto_harvest.Exceptions
         public override string StackTrace => null;
     }
 
-    public class ExternalAPICallException : BaseAppException
+    public class ExternalApiCallException : BaseAppException
     {
-        public ExternalAPICallException(string message) : base(message, HttpStatusCode.InternalServerError)
+        public ExternalApiCallException(string message) : base(message, HttpStatusCode.InternalServerError)
         { }
 
-        public ExternalAPICallException(string message, HttpStatusCode responseStatusCode) : base(message, responseStatusCode)
+        public ExternalApiCallException(string message, HttpStatusCode responseStatusCode) : base(message, responseStatusCode)
         { }
     }
 }
