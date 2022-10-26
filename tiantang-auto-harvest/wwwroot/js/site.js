@@ -1,25 +1,33 @@
 ﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 // for details on configuring this project to bundle and minify static web assets.
 function sendSMSCode() {
+    document.getElementById("get_sms_code").disabled = true;
+    
     let phoneNumber = document.getElementById("phone_number").value;
+    let captchaId = document.getElementById("captcha_id").value;
+    let captchaCode = document.getElementById("captcha_code").value;
+    
     let xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/SendSMS", true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.send(JSON.stringify({
-        phoneNumber: phoneNumber
+        phoneNumber: phoneNumber,
+        captchaId: captchaId,
+        captchaCode: captchaCode,
     }));
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
+            document.getElementById("get_sms_code").disabled = false;
+            
             if (xhr.status === 400) {
                 let responseJson = JSON.parse(xhr.responseText);
-                let errorMessages = responseJson["errors"]["PhoneNumber"];
 
                 let alertMessage = "";
-                for (let i = 0; i < errorMessages.length; i++) {
-                    alertMessage += errorMessages[i] + "\n";
+                for (const [key, value] of Object.entries(responseJson["errors"])) {
+                    alertMessage += `${value}\n`;
                 }
-
+                
                 alert(alertMessage);
             } else if (xhr.status !== 200) {
                 let alertMessage = "服务器出现错误：\n" + xhr.responseText;
@@ -29,7 +37,40 @@ function sendSMSCode() {
     }
 }
 
+function getCaptchaImage() {
+    document.getElementById("get_captcha_image").disabled = true;
+    document.getElementById("captcha_image").src = "";
+    
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", "/Api/GetCaptchaImage", true);
+    xhr.send();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            if (xhr.status !== 200) {
+                let alertMessage = "服务器出现错误：\n" + xhr.responseText;
+                alert(alertMessage);
+
+                return;
+            }
+
+            let responseText = xhr.responseText;
+            if (responseText) {
+                let responseJson = JSON.parse(responseText);
+                document.getElementById("captcha_image").src = responseJson["captchaUrl"];
+                document.getElementById("captcha_id").value = responseJson["captchaId"];
+                
+                document.getElementById("captcha_div").style.display = "block";
+                document.getElementById("captcha_div").style.textAlign = "center";
+            }
+        }
+
+        document.getElementById("get_captcha_image").disabled = false;
+    }
+}
+
 function verifySMSCode() {
+    document.getElementById("verify_sms_code").disabled = true;
+    
     let phoneNumber = document.getElementById("phone_number").value;
     let smsCode = document.getElementById("sms_code").value;
     let xhr = new XMLHttpRequest();
@@ -42,20 +83,16 @@ function verifySMSCode() {
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
+            document.getElementById("verify_sms_code").disabled = false;
+            
             if (xhr.status === 400) {
-                let alertMessage = "";
-
                 let responseJson = JSON.parse(xhr.responseText);
-                let errorMessages = responseJson["errors"]["PhoneNumber"];
-                for (let i = 0; i < errorMessages.length; i++) {
-                    alertMessage += errorMessages[i] + "\n";
-                }
 
-                errorMessages = responseJson["errors"]["OTPCode"];
-                for (let i = 0; i < errorMessages.length; i++) {
-                    alertMessage += errorMessages[i] + "\n";
+                let alertMessage = "";
+                for (const [key, value] of Object.entries(responseJson["errors"])) {
+                    alertMessage += `${value}\n`;
                 }
-
+                
                 alert(alertMessage);
 
                 return;
@@ -98,7 +135,7 @@ function updateNotificationKeys() {
     let barkToken = document.getElementById("bark_token").value;
     let dingTalkAccessToken = document.getElementById('dingtalk_token').value;
     let dingTalkSecret = document.getElementById('dingtalk_secret').value;
-    
+
     let xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/UpdateNotificationChannels", true);
     xhr.setRequestHeader("Content-Type", "application/json");
@@ -149,7 +186,7 @@ function loadNotificationKeys() {
 
                 let serverChanSendKey = responseJson["serverChan"];
                 let barkToken = responseJson["bark"];
-                
+
                 let dingTalk = responseJson["dingTalk"];
                 let dingTalkAccessToken = dingTalk ? dingTalk["accessToken"] : "";
                 let dingTalkSecret = dingTalk ? dingTalk["secret"] : "";

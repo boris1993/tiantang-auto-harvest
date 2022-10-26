@@ -8,6 +8,11 @@ namespace tiantang_auto_harvest.Models.Requests
         [Phone(ErrorMessage = "无效的手机号码")]
         [StringLength(11, MinimumLength = 11, ErrorMessage = "手机号码不足或超出11位")]
         public string PhoneNumber { get; set; }
+        
+        [Required(ErrorMessage = "图片验证码不可为空")]
+        public string captchaId { get; set; }
+        
+        public string captchaCode { get; set; }
     }
 
     public class VerifyCodeRequest

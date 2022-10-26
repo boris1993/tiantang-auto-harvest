@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
+using tiantang_auto_harvest.Constants;
 using tiantang_auto_harvest.EventListeners;
 using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Jobs;
@@ -43,8 +44,11 @@ namespace tiantang_auto_harvest
             services.AddScoped<NotificationRemoteCallService>();
             services.AddHttpClient<AppService>(client =>
             {
-                client.BaseAddress = new Uri(Constants.TiantangBackendURLs.BaseUrl);
+                client.BaseAddress = new Uri(TiantangBackendURLs.BaseUrl);
                 client.Timeout = TimeSpan.FromSeconds(10);
+                client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), TiantangBackendURLs.UserAgent);
+                client.DefaultRequestHeaders.Add(HttpRequestHeader.AcceptEncoding.ToString(), TiantangBackendURLs.AcceptEncoding);
+                
             });
             services.AddSingleton<TiantangRemoteCallService>();
             services.AddSingleton<ScoreLoadedEventHandler>();

@@ -5,84 +5,73 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using tiantang_auto_harvest.Constants;
 using tiantang_auto_harvest.Exceptions;
 
 namespace tiantang_auto_harvest.Service
 {
     public class TiantangRemoteCallService
     {
-        private readonly ILogger logger;
-        private readonly HttpClient httpClient;
-        public TiantangRemoteCallService(ILogger<AppService> logger, HttpClient httpClient)
+        private readonly ILogger _logger;
+        private readonly HttpClient _httpClient;
+
+        public TiantangRemoteCallService(ILogger<TiantangRemoteCallService> logger, HttpClient httpClient)
         {
-            this.logger = logger;
-            this.httpClient = httpClient;
+            _logger = logger;
+            _httpClient = httpClient;
         }
 
-        public JsonDocument RefreshLogin(string unionId)
-        {
-            return SendRequestWithoutToken(
-                new Uri(Constants.TiantangBackendURLs.RefreshLogin),
-                HttpMethod.Post,
-                JsonContent.Create(new { union_id = unionId }));
-        }
+        public JsonDocument RefreshLogin(string unionId) =>
+            SendRequestWithoutToken(new Uri(TiantangBackendURLs.RefreshLogin), HttpMethod.Post, JsonContent.Create(new {union_id = unionId}));
 
-        public JsonDocument DailyCheckIn(string accessToken)
-        {
-            return SendRequest(new Uri(Constants.TiantangBackendURLs.DailyCheckInUrl), HttpMethod.Post, accessToken);
-        }
+        public JsonDocument DailyCheckIn(string accessToken) =>
+            SendRequest(new Uri(TiantangBackendURLs.DailyCheckInUrl), HttpMethod.Post, accessToken);
 
-        public JsonDocument RetrieveUserInfo(string accessToken)
-        {
-            return SendRequest(new Uri(Constants.TiantangBackendURLs.UserInfoUrl), HttpMethod.Post, accessToken);
-        }
+        public JsonDocument RetrieveUserInfo(string accessToken) =>
+            SendRequest(new Uri(TiantangBackendURLs.UserInfoUrl), HttpMethod.Post, accessToken);
 
-        public JsonDocument RetrieveNodes(string accessToken)
-        {
-            return SendRequest(new Uri(Constants.TiantangBackendURLs.DevicesListUrl), HttpMethod.Get, accessToken);
-        }
+        public JsonDocument RetrieveNodes(string accessToken) =>
+            SendRequest(new Uri(TiantangBackendURLs.DevicesListUrl), HttpMethod.Get, accessToken);
 
         public JsonDocument HarvestPromotionScore(int promotionScore, string accessToken)
         {
-            var body = new Dictionary<string, int>();
-            body["score"] = promotionScore;
+            var body = new Dictionary<string, int>
+            {
+                ["score"] = promotionScore,
+            };
 
-            return SendRequest(new Uri(Constants.TiantangBackendURLs.HarvestPromotionScores), HttpMethod.Post, accessToken, body);
+            return SendRequest(new Uri(TiantangBackendURLs.HarvestPromotionScores), HttpMethod.Post, accessToken, body);
         }
 
-        public JsonDocument RetrieveAllBonusCards(string accessToken)
-        {
-            return SendRequest(new Uri(Constants.TiantangBackendURLs.GetActivatedBonusCards), HttpMethod.Get, accessToken);
-        }
+        public JsonDocument RetrieveAllBonusCards(string accessToken) =>
+            SendRequest(new Uri(TiantangBackendURLs.GetActivatedBonusCards), HttpMethod.Get, accessToken);
 
-        public JsonDocument RetrieveActivatedBonusCards(string accessToken)
-        {
-            return SendRequest(new Uri(Constants.TiantangBackendURLs.GetActivatedBonusCardStatus), HttpMethod.Get, accessToken);
-        }
+        public JsonDocument RetrieveActivatedBonusCards(string accessToken) =>
+            SendRequest(new Uri(TiantangBackendURLs.GetActivatedBonusCardStatus), HttpMethod.Get, accessToken);
 
         public void HarvestDeviceScore(Dictionary<string, int> devices, string accessToken)
         {
-            var uri = new Uri(Constants.TiantangBackendURLs.HarvestDeviceScores);
-            foreach (KeyValuePair<string, int> device in devices)
+            var uri = new Uri(TiantangBackendURLs.HarvestDeviceScores);
+            foreach (var device in devices)
             {
                 if (device.Value == 0)
                 {
-                    logger.LogInformation($"设备{device.Key}无可收取星愿");
+                    _logger.LogInformation("设备{DeviceKey}无可收取星愿", device.Key);
                     continue;
                 }
 
-                logger.LogInformation($"正在收取设备{device.Key}的{device.Value}点星愿");
-                var body = new Dictionary<string, object>();
-                body["device_id"] = device.Key;
-                body["score"] = device.Value;
+                _logger.LogInformation("正在收取设备{DeviceKey}的{DeviceValue}点星愿", device.Key, device.Value);
+                var body = new Dictionary<string, object>
+                {
+                    ["device_id"] = device.Key,
+                    ["score"] = device.Value,
+                };
                 SendRequest(uri, HttpMethod.Post, accessToken, body);
             }
         }
 
-        public void ActiveElectricBillBonusCard(string accessToken)
-        {
-            SendRequest(new Uri(Constants.TiantangBackendURLs.ActiveElectricBillBonusCard), HttpMethod.Put, accessToken);
-        }
+        public void ActiveElectricBillBonusCard(string accessToken) =>
+            SendRequest(new Uri(TiantangBackendURLs.ActiveElectricBillBonusCard), HttpMethod.Put, accessToken);
 
         private JsonDocument SendRequest(Uri uri, HttpMethod httpMethod, string accessToken, object body = null)
         {
@@ -92,12 +81,12 @@ namespace tiantang_auto_harvest.Service
                 RequestUri = uri,
                 Headers =
                 {
-                    { HttpRequestHeader.Authorization.ToString(), accessToken }
+                    {HttpRequestHeader.Authorization.ToString(), accessToken}
                 },
-                Content = JsonContent.Create(body)
+                Content = JsonContent.Create(body),
             };
-            var response = httpClient.SendAsync(httpRequestMessage).Result;
-            EnsureSuccessfulResponse(response, out JsonDocument responseJson);
+            var response = _httpClient.SendAsync(httpRequestMessage).Result;
+            EnsureSuccessfulResponse(response, out var responseJson);
             return responseJson;
         }
 
@@ -107,10 +96,10 @@ namespace tiantang_auto_harvest.Service
             {
                 Method = httpMethod,
                 RequestUri = uri,
-                Content = body
+                Content = body,
             };
-            var response = httpClient.SendAsync(httpRequestMessage).Result;
-            EnsureSuccessfulResponse(response, out JsonDocument responseJson);
+            var response = _httpClient.SendAsync(httpRequestMessage).Result;
+            EnsureSuccessfulResponse(response, out var responseJson);
             return responseJson;
         }
 
@@ -124,13 +113,13 @@ namespace tiantang_auto_harvest.Service
             if (!response.IsSuccessStatusCode)
             {
                 HttpStatusCode statusCode = response.StatusCode;
-                logger.LogError($"请求失败，HTTP返回码 {statusCode} ，错误信息：{errorMessage}");
+                _logger.LogError("请求失败，HTTP返回码 {StatusCode} ，错误信息：{ErrorMessage}", statusCode, errorMessage);
                 throw new ExternalApiCallException(errorMessage, statusCode);
             }
 
             if (errCode != 0)
             {
-                logger.LogError($"甜糖API返回码不为0，错误信息：{errorMessage}");
+                _logger.LogError("甜糖API返回码不为0，错误信息：{ErrorMessage}", errorMessage);
                 throw new ExternalApiCallException(errorMessage);
             }
         }

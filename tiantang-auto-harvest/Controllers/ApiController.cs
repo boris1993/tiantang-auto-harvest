@@ -21,10 +21,22 @@ namespace tiantang_auto_harvest.Controllers
             _appService = appService;
         }
 
+        [HttpGet]
+        public async Task<ActionResult> GetCaptchaImage()
+        {
+            var (captchaId, captchaUrl) = await _appService.GetCaptchaImage();
+            
+            _logger.LogInformation("CaptchaId是{CaptchaId}", captchaId);
+            return new ObjectResult(new {captchaId, captchaUrl});
+        }
+
         [HttpPost]
         public async Task<ActionResult> SendSms(SendSMSRequest sendSmsRequest)
         {
-            await _appService.RetrieveSMSCode(sendSmsRequest.PhoneNumber);
+            await _appService.RetrieveSMSCode(
+                sendSmsRequest.PhoneNumber, 
+                sendSmsRequest.captchaId,
+                sendSmsRequest.captchaCode);
             return new EmptyResult();
         }
 

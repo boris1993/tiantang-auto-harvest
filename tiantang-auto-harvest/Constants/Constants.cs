@@ -2,8 +2,12 @@
 {
     public static class TiantangBackendURLs
     {
+        public const string UserAgent = "Dart/2.17 (dart:io)";
+        public const string AcceptEncoding = "gzip";
+        
         public const string BaseUrl = "http://tiantang.mogencloud.com";
-        public const string SendSmsUrl = $"{BaseUrl}/web/api/login/code";
+        public const string GetCaptchaImageUrl = $"{BaseUrl}/api/v1/captcha/request";
+        public const string SendSmsUrl = $"{BaseUrl}/web/api/v2/login/code";
         public const string VerifySmsCodeUrl = $"{BaseUrl}/web/api/login";
         public const string DailyCheckInUrl = $"{BaseUrl}/web/api/account/sign_in";
         public const string UserInfoUrl = $"{BaseUrl}/web/api/account/message/loading";

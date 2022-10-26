@@ -8,6 +8,33 @@
             <div>
                 <h1 class="title text-center">获取Token</h1>
                 <form class="border padding-top">
+                    <!-- region 图片验证码 -->
+                    <div class="form-group row align-items-center margin-left-right">
+                        <label for="captcha_code" class="col-4 col-form-label text-right no-left-padding">图片验证码</label>
+                        <div class="col-4 no-left-padding">
+                            <input type="text"
+                                   class="form-control"
+                                   id="captcha_code"
+                                   name="captcha_code"
+                                   autocomplete="off"
+                                   onkeyup="this.value=this.value.replace(/\D/g,'')"
+                                   onafterpaste="this.value=this.value.replace(/\D/g,'')"/>
+                        </div>
+                        <div class="col-4 no-left-padding">
+                            <input type="button" class="btn-block" id="get_captcha_image" value="获取图片验证码" onclick="getCaptchaImage()"/>
+                        </div>
+                    </div>
+                    <div id="captcha_div"
+                         style="display: none"
+                         class="form-group row align-items-center margin-left-right">
+                        <img id="captcha_image" src="" alt=""/>
+                    </div>
+                    <input type="text"
+                           id="captcha_id"
+                           name="captcha_id"
+                           style="display: none"/>
+                    <!-- endregion -->
+                    
                     <div class="form-group row align-items-center margin-left-right">
                         <label for="phone_number" class="col-4 col-form-label text-right no-left-padding">手机号码</label>
                         <div class="col-4 no-left-padding">
@@ -36,7 +63,7 @@
                     <div class="form-group row align-items-center margin-left-right">
                         <label for="current_phone_number" class="col-6 col-form-label text-right no-left-padding">当前登录的手机号：</label>
                         <div class="col-4 no-left-padding">
-                            <input type="text" readonly class="form-control-plaintext" id="current_phone_number" value="">
+                            <input type="text" readonly disabled class="form-control-plaintext" id="current_phone_number" value="">
                         </div>
                     </div>
                 </form>
@@ -120,7 +147,7 @@
 
                                     <label for="dingtalk_secret">Secret</label>
                                     <input autocomplete="off" class="form-control" id="dingtalk_secret" name="dingtalk_secret" type="text"/>
-                                    
+
                                     <hr/>
                                     <div class="col-12 text-center">
                                         <lable>钉钉机器人的 access token 和 secret 必须同时设定</lable>

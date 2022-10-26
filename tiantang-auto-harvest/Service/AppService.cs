@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using tiantang_auto_harvest.Constants;
 using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Models.Requests;
@@ -15,146 +17,153 @@ namespace tiantang_auto_harvest.Service
 {
     public class AppService
     {
-        private readonly ILogger logger;
-        private readonly DefaultDbContext defaultDbContext;
-        private readonly TiantangRemoteCallService tiantangRemoteCallService;
-        private readonly NotificationRemoteCallService notificationRemoteCallService;
-        private readonly HttpClient httpClient;
+        private readonly ILogger<AppService> _logger;
+        private readonly DefaultDbContext _defaultDbContext;
+        private readonly TiantangRemoteCallService _tiantangRemoteCallService;
+        private readonly NotificationRemoteCallService _notificationRemoteCallService;
+        private readonly HttpClient _httpClient;
 
         public AppService(
             ILogger<AppService> logger,
             DefaultDbContext defaultDbContext,
             TiantangRemoteCallService tiantangRemoteCallService,
             NotificationRemoteCallService notificationRemoteCallService,
-            HttpClient httpClient
-        )
+            HttpClient httpClient)
         {
-            this.logger = logger;
-            this.defaultDbContext = defaultDbContext;
-            this.tiantangRemoteCallService = tiantangRemoteCallService;
-            this.notificationRemoteCallService = notificationRemoteCallService;
-            this.httpClient = httpClient;
+            _logger = logger;
+            _defaultDbContext = defaultDbContext;
+            _tiantangRemoteCallService = tiantangRemoteCallService;
+            _notificationRemoteCallService = notificationRemoteCallService;
+            _httpClient = httpClient;
         }
 
-        public async Task RetrieveSMSCode(string phoneNumber)
+        public async Task<(string captchaId, string captchaUrl)> GetCaptchaImage()
         {
-            logger.LogInformation($"正在向 {phoneNumber} 发送验证码短信");
+            _logger.LogInformation("正在获取验证码图片");
 
-            UriBuilder uriBuilder = new UriBuilder(Constants.TiantangBackendURLs.SendSmsUrl);
-            uriBuilder.Query = $"phone={phoneNumber}";
-            Uri uri = uriBuilder.Uri;
+            var uri = new Uri(TiantangBackendURLs.GetCaptchaImageUrl);
 
-            HttpResponseMessage response = await httpClient.PostAsync(uri, null);
+            var response = await _httpClient.GetAsync(uri);
             EnsureSuccessfulResponse(response);
 
-            logger.LogInformation("短信发送成功");
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var responseJson = JsonDocument.Parse(responseBody);
+
+            var captchaId = responseJson.RootElement.GetProperty("data").GetProperty("captchaId").GetString();
+            var captchaUrl = responseJson.RootElement.GetProperty("data").GetProperty("captchaUrl").GetString();
+            var captchaFullUrl = $"{TiantangBackendURLs.BaseUrl}{captchaUrl}";
+
+            return (captchaId, captchaFullUrl);
+        }
+
+        public async Task RetrieveSMSCode(string phone, string captchaId, string captchaCode)
+        {
+            _logger.LogInformation("正在向 {PhoneNumber} 发送验证码短信", phone);
+
+            var uri = new Uri(TiantangBackendURLs.SendSmsUrl);
+            var body = JsonContent.Create(new {phone, captchaId, captchaCode});
+
+            await _httpClient.PostAsync(uri, body);
+
+            _logger.LogInformation("短信发送成功");
         }
 
         public async Task VerifySMSCode(string phoneNumber, string smsCode)
         {
-            logger.LogInformation($"正在校验验证码 {smsCode}");
+            _logger.LogInformation("正在校验验证码 {SmsCode}", smsCode);
 
-            UriBuilder uriBuilder = new UriBuilder(Constants.TiantangBackendURLs.VerifySmsCodeUrl);
-            uriBuilder.Query = $"phone={phoneNumber}&authCode={smsCode}";
-            Uri uri = uriBuilder.Uri;
+            var uriBuilder = new UriBuilder(TiantangBackendURLs.VerifySmsCodeUrl)
+            {
+                Query = $"phone={phoneNumber}&authCode={smsCode}",
+            };
+            var uri = uriBuilder.Uri;
 
-            HttpResponseMessage response = await httpClient.PostAsync(uri, null);
+            var response = await _httpClient.PostAsync(uri, null);
             EnsureSuccessfulResponse(response);
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseJson = JsonDocument.Parse(responseBody);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var responseJson = JsonDocument.Parse(responseBody);
 
-            string token = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
-            string unionId = responseJson.RootElement.GetProperty("data").GetProperty("union_id").GetString();
-            logger.LogInformation($"Token是 {token} , union ID是 {unionId}");
+            var token = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
+            var unionId = responseJson.RootElement.GetProperty("data").GetProperty("union_id").GetString();
+            _logger.LogInformation("Token是 {Token} , union ID是 {UnionId}", token, unionId);
 
             // Remove all records before inserting the new one
-            defaultDbContext.TiantangLoginInfo.RemoveRange(defaultDbContext.TiantangLoginInfo);
-            TiantangLoginInfo tiantangLoginInfo = new TiantangLoginInfo
+            _defaultDbContext.TiantangLoginInfo.RemoveRange(_defaultDbContext.TiantangLoginInfo);
+            var tiantangLoginInfo = new TiantangLoginInfo
             {
                 PhoneNumber = phoneNumber,
                 AccessToken = token,
-                UnionId = unionId
+                UnionId = unionId,
             };
-            logger.LogInformation($"正在保存 {phoneNumber} 的记录到数据库");
-            defaultDbContext.Add(tiantangLoginInfo);
-            defaultDbContext.SaveChanges();
+            _logger.LogInformation("正在保存 {PhoneNumber} 的记录到数据库", phoneNumber);
+            _defaultDbContext.Add(tiantangLoginInfo);
+            await _defaultDbContext.SaveChangesAsync();
         }
 
         public void RefreshLogin()
         {
-            TiantangLoginInfo tiantangLoginInfo = defaultDbContext.TiantangLoginInfo.SingleOrDefault();
+            var tiantangLoginInfo = _defaultDbContext.TiantangLoginInfo.SingleOrDefault();
             if (tiantangLoginInfo == null)
             {
                 return;
             }
 
-            logger.LogInformation($"正在刷新{tiantangLoginInfo.PhoneNumber}的token");
+            _logger.LogInformation("正在刷新{PhoneNumber}的token", tiantangLoginInfo.PhoneNumber);
 
-            string unionId = tiantangLoginInfo.UnionId;
-            JsonDocument responseJson = tiantangRemoteCallService.RefreshLogin(unionId);
+            var unionId = tiantangLoginInfo.UnionId;
+            var responseJson = _tiantangRemoteCallService.RefreshLogin(unionId);
 
-            string newToken = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
+            var newToken = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
             tiantangLoginInfo.AccessToken = newToken;
-            logger.LogInformation($"新token是 {newToken}");
+            _logger.LogInformation("新token是 {NewToken}", newToken);
 
-            defaultDbContext.SaveChanges();
+            _defaultDbContext.SaveChanges();
         }
 
         public void UpdateNotificationKeys(SetNotificationChannelRequest setNotificationChannelRequest)
         {
-            logger.LogInformation($"正在更新通知通道密钥\n{JsonConvert.SerializeObject(setNotificationChannelRequest)}");
+            _logger.LogInformation("正在更新通知通道密钥\\n{SerializeObject}", JsonConvert.SerializeObject(setNotificationChannelRequest));
 
-            defaultDbContext.PushChannelKeys.RemoveRange(defaultDbContext.PushChannelKeys);
-            List<PushChannelConfiguration> pushChannelConfigurations = new List<PushChannelConfiguration>
+            _defaultDbContext.PushChannelKeys.RemoveRange(_defaultDbContext.PushChannelKeys);
+            var pushChannelConfigurations = new List<PushChannelConfiguration>
             {
-                new(Constants.NotificationChannelNames.ServerChan,
-                    setNotificationChannelRequest.ServerChan),
-                
-                new(Constants.NotificationChannelNames.Bark,
-                    setNotificationChannelRequest.Bark),
-                
-                new(Constants.NotificationChannelNames.DingTalk,
-                    setNotificationChannelRequest.DingTalk.AccessToken, 
-                    setNotificationChannelRequest.DingTalk.Secret)
+                new PushChannelConfiguration(NotificationChannelNames.ServerChan, setNotificationChannelRequest.ServerChan),
+                new PushChannelConfiguration(NotificationChannelNames.Bark, setNotificationChannelRequest.Bark),
+                new PushChannelConfiguration(NotificationChannelNames.DingTalk, setNotificationChannelRequest.DingTalk.AccessToken, setNotificationChannelRequest.DingTalk.Secret)
             };
 
-            defaultDbContext.UpdateRange(pushChannelConfigurations);
-            defaultDbContext.SaveChanges();
+            _defaultDbContext.UpdateRange(pushChannelConfigurations);
+            _defaultDbContext.SaveChanges();
         }
 
         public async Task TestNotificationChannels()
         {
             var notificationBody = new NotificationBody("通知测试第一行\n通知测试第二行");
-            await notificationRemoteCallService.SendNotificationToAllChannels(notificationBody);
+            await _notificationRemoteCallService.SendNotificationToAllChannels(notificationBody);
         }
 
         public TiantangLoginInfo GetCurrentLoginInfo()
         {
-            TiantangLoginInfo tiantangLoginInfo = defaultDbContext.TiantangLoginInfo.SingleOrDefault();
-            if (tiantangLoginInfo == null)
-            {
-                return null;
-            }
-
+            var tiantangLoginInfo = _defaultDbContext.TiantangLoginInfo.SingleOrDefault();
             return tiantangLoginInfo;
         }
 
         public SetNotificationChannelRequest GetNotificationKeys()
         {
-            var PushChannelConfigurations = defaultDbContext.PushChannelKeys.ToList<PushChannelConfiguration>();
+            var pushChannelConfigurations = _defaultDbContext.PushChannelKeys.ToList<PushChannelConfiguration>();
             var response = new SetNotificationChannelRequest();
-            foreach (var pushChannelConfiguration in PushChannelConfigurations)
+            foreach (var pushChannelConfiguration in pushChannelConfigurations)
             {
                 switch (pushChannelConfiguration.ServiceName)
                 {
-                    case Constants.NotificationChannelNames.ServerChan:
+                    case NotificationChannelNames.ServerChan:
                         response.ServerChan = pushChannelConfiguration.Token;
                         break;
-                    case Constants.NotificationChannelNames.Bark:
+                    case NotificationChannelNames.Bark:
                         response.Bark = pushChannelConfiguration.Token;
                         break;
-                    case Constants.NotificationChannelNames.DingTalk:
+                    case NotificationChannelNames.DingTalk:
                         response.DingTalk = new SetNotificationChannelRequest.DingTalkToken
                         {
                             AccessToken = pushChannelConfiguration.Token,
@@ -162,7 +171,7 @@ namespace tiantang_auto_harvest.Service
                         };
                         break;
                     default:
-                        logger.LogWarning($"未知的通知渠道{pushChannelConfiguration.ServiceName}");
+                        _logger.LogWarning("未知的通知渠道{ServiceName}", pushChannelConfiguration.ServiceName);
                         break;
                 }
             }
@@ -172,22 +181,37 @@ namespace tiantang_auto_harvest.Service
 
         private void EnsureSuccessfulResponse(HttpResponseMessage response)
         {
-            HttpStatusCode statusCode = response.StatusCode;
-            string responseBody = response.Content.ReadAsStringAsync().Result;
-            JsonDocument responseJson = JsonDocument.Parse(responseBody);
-            int errCode = responseJson.RootElement.GetProperty("errCode").GetInt32();
-            string errorMessage = responseJson.RootElement.GetProperty("msg").GetString();
-
-            if (statusCode != HttpStatusCode.OK)
+            string responseBody;
+            JsonDocument responseJson;
+            int errCode;
+            string errorMessage;
+            
+            var statusCode = response.StatusCode;
+            switch (statusCode)
             {
-                logger.LogError($"请求失败，HTTP返回码 {statusCode} ，错误信息：{errorMessage}");
-                throw new ExternalApiCallException(errorMessage, statusCode);
-            }
-
-            if (errCode != 0)
-            {
-                logger.LogError($"甜糖API返回码不为0，错误信息：{errorMessage}");
-                throw new ExternalApiCallException(errorMessage);
+                case HttpStatusCode.BadGateway:
+                    _logger.LogError("请求失败，HTTP返回码 {StatusCode}", statusCode);
+                    throw new ExternalApiCallException("请求发送失败，可能是网络不稳定，请重试");
+                case HttpStatusCode.OK:
+                    responseBody = response.Content.ReadAsStringAsync().Result;
+                    responseJson = JsonDocument.Parse(responseBody);
+                    errCode = responseJson.RootElement.GetProperty("errCode").GetInt32();
+                    errorMessage = responseJson.RootElement.GetProperty("msg").GetString();
+                    
+                    if (errCode != 0)
+                    {
+                        _logger.LogError("甜糖API返回码不为0，错误信息：{ErrorMessage}", errorMessage);
+                        throw new ExternalApiCallException(errorMessage);
+                    }
+                    
+                    break;
+                default:
+                    responseBody = response.Content.ReadAsStringAsync().Result;
+                    responseJson = JsonDocument.Parse(responseBody);
+                    errorMessage = responseJson.RootElement.GetProperty("msg").GetString();
+                        
+                    _logger.LogError("请求失败，HTTP返回码 {StatusCode} ，错误信息：{ErrorMessage}", statusCode, errorMessage);
+                    throw new ExternalApiCallException(errorMessage, statusCode);
             }
         }
     }
