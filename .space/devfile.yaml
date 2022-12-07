@@ -1,0 +1,7 @@
+schemaVersion: 2.2.0
+attributes:
+  space:
+    instanceType: regular
+    editor:
+      type: Rider
+    projectRoot: tiantang-auto-harvest.sln
