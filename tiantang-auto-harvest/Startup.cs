@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
@@ -52,6 +53,14 @@ namespace tiantang_auto_harvest
             });
             services.AddSingleton<TiantangRemoteCallService>();
             services.AddSingleton<ScoreLoadedEventHandler>();
+
+            services.AddLogging(builder =>
+            {
+                builder.AddSimpleConsole(options =>
+                {
+                    options.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
+                });
+            });
 
             #region Quartz Configurations
 
@@ -99,9 +108,9 @@ namespace tiantang_auto_harvest
                 var errorResponseBody = new ErrorResponse(exception?.Message);
 
                 HttpStatusCode statusCode;
-                if (exception is BaseAppException)
+                if (exception is BaseAppException baseAppException)
                 {
-                    statusCode = ((BaseAppException) exception).ResponseStatusCode;
+                    statusCode = baseAppException.ResponseStatusCode;
                 }
                 else
                 {
