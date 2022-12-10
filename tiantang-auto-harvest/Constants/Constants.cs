@@ -5,7 +5,7 @@
         public const string UserAgent = "Dart/2.17 (dart:io)";
         public const string AcceptEncoding = "gzip";
         
-        public const string BaseUrl = "http://tiantang.mogencloud.com";
+        public const string BaseUrl = "http://tiptime-api.com";
         public const string GetCaptchaImageUrl = $"{BaseUrl}/api/v1/captcha/request";
         public const string SendSmsUrl = $"{BaseUrl}/web/api/v2/login/code";
         public const string VerifySmsCodeUrl = $"{BaseUrl}/web/api/login";
