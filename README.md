@@ -27,14 +27,16 @@ services:
     image: boris1993/tiantang-auto-harvest:latest
     container_name: tiantang-auto-harvest
     restart: always
-    volumes: 
+    volumes:
       # 备份数据库文件
       - /volume2/docker-data/tiantang-auto-harvest:/app/data
     environment:
       - TZ=Asia/Shanghai
+      # 启用调试日志，如果没有问题的话不需要打开这个开关
+      # - ASPNETCORE_ENVIRONMENT=Development
     ports:
       # 管理页面端口
-      - 8080:80
+      - "8080:80"
 ```
 
 或者可以使用如下`Docker`命令启动：
@@ -46,6 +48,8 @@ docker run \
     -p 8080:80 \
     -v /volume2/docker-data/tiantang-auto-harvest:/app/data \
     -e TZ=Asia/Shanghai \
+    # 启用调试日志，如果没有问题的话不需要打开这个开关
+    # -e ASPNETCORE_ENVIRONMENT=Development
     -d \
     boris1993/tiantang-auto-harvest:latest
 ```

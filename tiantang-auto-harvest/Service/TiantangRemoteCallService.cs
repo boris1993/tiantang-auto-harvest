@@ -75,17 +75,22 @@ namespace tiantang_auto_harvest.Service
 
         private JsonDocument SendRequest(Uri uri, HttpMethod httpMethod, string accessToken, object body = null)
         {
+            _logger.LogDebug("正在构造httpRequestMessage");
             var httpRequestMessage = new HttpRequestMessage
             {
                 Method = httpMethod,
                 RequestUri = uri,
                 Headers =
                 {
-                    {HttpRequestHeader.Authorization.ToString(), accessToken}
+                    {HttpRequestHeader.Authorization.ToString(), accessToken},
                 },
                 Content = JsonContent.Create(body),
             };
+            _logger.LogDebug("httpRequestMessage = {HttpRequestMessage}", httpRequestMessage);
+
             var response = _httpClient.SendAsync(httpRequestMessage).Result;
+            _logger.LogDebug("Response = {Response}", response.ToString());
+
             EnsureSuccessfulResponse(response, out var responseJson);
             return responseJson;
         }
@@ -105,14 +110,19 @@ namespace tiantang_auto_harvest.Service
 
         private void EnsureSuccessfulResponse(HttpResponseMessage response, out JsonDocument responseJson)
         {
-            string responseBody = response.Content.ReadAsStringAsync().Result;
+            var responseBody = response.Content.ReadAsStringAsync().Result;
+            _logger.LogDebug("ResponseBody = {ResponseBody}", responseBody);
+
             responseJson = JsonDocument.Parse(responseBody);
-            int errCode = responseJson.RootElement.GetProperty("errCode").GetInt32();
-            string errorMessage = responseJson.RootElement.GetProperty("msg").GetString();
+            var errCode = responseJson.RootElement.GetProperty("errCode").GetInt32();
+            var errorMessage = responseJson.RootElement.GetProperty("msg").GetString();
+
+            _logger.LogDebug("HTTP状态码为 {StatusCode}", response.StatusCode);
+            _logger.LogDebug("errCode={ErrCode}, errorMessage={ErrorMessage}", errCode, errorMessage);
 
             if (!response.IsSuccessStatusCode)
             {
-                HttpStatusCode statusCode = response.StatusCode;
+                var statusCode = response.StatusCode;
                 _logger.LogError("请求失败，HTTP返回码 {StatusCode} ，错误信息：{ErrorMessage}", statusCode, errorMessage);
                 throw new ExternalApiCallException(errorMessage, statusCode);
             }

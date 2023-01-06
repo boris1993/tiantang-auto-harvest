@@ -73,7 +73,7 @@ namespace tiantang_auto_harvest
             // 每日03:00签到
             services.AddSingleton(new JobSchedule(
                 jobType: typeof(SigninJob),
-                cronExpression: "0 0 3 * * ?"
+                cronExpression: "0 * * * * ?"
             ));
             // 每日10:00收取星愿
             services.AddSingleton(new JobSchedule(
