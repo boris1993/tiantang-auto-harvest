@@ -10,12 +10,12 @@ namespace tiantang_auto_harvest.Exceptions
     {
         public HttpStatusCode ResponseStatusCode { get; }
 
-        public BaseAppException(string message) : base(message)
+        protected BaseAppException(string message) : base(message)
         {
             ResponseStatusCode = HttpStatusCode.InternalServerError;
         }
 
-        public BaseAppException(string message, HttpStatusCode responseStatusCode) : base(message)
+        protected BaseAppException(string message, HttpStatusCode responseStatusCode) : base(message)
         {
             ResponseStatusCode = responseStatusCode;
         }
@@ -23,7 +23,10 @@ namespace tiantang_auto_harvest.Exceptions
         /// <summary>
         /// Removing the stack trace because we don't need it in these user-defined exceptions
         /// </summary>
-        public override string StackTrace => null;
+        public override string StackTrace
+        {
+            get => null;
+        }
     }
 
     public class ExternalApiCallException : BaseAppException
@@ -32,6 +35,12 @@ namespace tiantang_auto_harvest.Exceptions
         { }
 
         public ExternalApiCallException(string message, HttpStatusCode responseStatusCode) : base(message, responseStatusCode)
+        { }
+    }
+
+    public class TaskCancelledException : BaseAppException
+    {
+        public TaskCancelledException() : base("任务被取消")
         { }
     }
 }

@@ -55,8 +55,9 @@ namespace tiantang_auto_harvest.Jobs
 
                 _logger.LogInformation("Token有效期不足24小时，将刷新登录");
 
+                var cancellationToken = CancellationTokenHelper.GetCancellationToken();
                 var unionId = tiantangLoginInfo.UnionId;
-                var responseJson = _tiantangRemoteCallService.RefreshLogin(unionId);
+                var responseJson = _tiantangRemoteCallService.RefreshLogin(unionId, cancellationToken);
                 var newToken = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
                 tiantangLoginInfo.AccessToken = newToken;
 

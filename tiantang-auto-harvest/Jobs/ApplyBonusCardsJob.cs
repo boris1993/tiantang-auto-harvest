@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Quartz;
+using tiantang_auto_harvest.Constants;
 using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Service;
@@ -44,7 +45,8 @@ namespace tiantang_auto_harvest.Jobs
                 JsonDocument activatedBonusCardResponse;
                 try
                 {
-                    activatedBonusCardResponse = tiantangRemoteCallService.RetrieveActivatedBonusCards(_accessToken);
+                    var cancellationToken = CancellationTokenHelper.GetCancellationToken();
+                    activatedBonusCardResponse = tiantangRemoteCallService.RetrieveActivatedBonusCards(_accessToken, cancellationToken);
                 }
                 catch (ExternalApiCallException)
                 {
@@ -55,7 +57,8 @@ namespace tiantang_auto_harvest.Jobs
                 JsonDocument allBonusCardsResponse;
                 try
                 {
-                    allBonusCardsResponse = tiantangRemoteCallService.RetrieveAllBonusCards(_accessToken);
+                    var cancellationToken = CancellationTokenHelper.GetCancellationToken();
+                    allBonusCardsResponse = tiantangRemoteCallService.RetrieveAllBonusCards(_accessToken, cancellationToken);
                 }
                 catch (ExternalApiCallException)
                 {
@@ -74,10 +77,10 @@ namespace tiantang_auto_harvest.Jobs
             #region 检查电费卡数量
             var electricBillBonusCardInfo =
                 allBonusCardsResponse
-                    .RootElement.GetProperty("data")
+                    .RootElement
+                    .GetProperty("data")
                     .EnumerateArray()
-                    .Where(element => element.GetProperty("prop_id").GetInt32().ToString() == Constants.TiantangBonusCardTypes.ElectricBillBonus)
-                    .SingleOrDefault();
+                    .SingleOrDefault(element => element.GetProperty("prop_id").GetInt32().ToString() == TiantangBonusCardTypes.ElectricBillBonus);
 
             if (electricBillBonusCardInfo.ValueKind == JsonValueKind.Undefined)
             {
@@ -93,11 +96,10 @@ namespace tiantang_auto_harvest.Jobs
             #region 检查当前有无正在生效的电费卡
             var currentActivatedElectricBillBonus =
                 activatedBonusCardResponse
-                .RootElement
-                .GetProperty("data")
-                .EnumerateArray()
-                .Where(element => element.GetProperty("name").GetString() == "电费卡")
-                .SingleOrDefault();
+                    .RootElement
+                    .GetProperty("data")
+                    .EnumerateArray()
+                    .SingleOrDefault(element => element.GetProperty("name").GetString() == "电费卡");
 
             if (currentActivatedElectricBillBonus.ValueKind != JsonValueKind.Undefined)
             {
@@ -113,8 +115,7 @@ namespace tiantang_auto_harvest.Jobs
                 .RootElement
                 .GetProperty("data")
                 .EnumerateArray()
-                .Where(element => element.GetProperty("prop_id").GetInt32().ToString() == Constants.TiantangBonusCardTypes.ElectricBillBonus)
-                .Any();
+                .Any(element => element.GetProperty("prop_id").GetInt32().ToString() == TiantangBonusCardTypes.ElectricBillBonus);
 
             if (!isElectricBillBonusCardExist)
             {
@@ -123,7 +124,9 @@ namespace tiantang_auto_harvest.Jobs
             }
 
             logger.LogInformation("正在激活电费卡");
-            tiantangRemoteCallService.ActiveElectricBillBonusCard(_accessToken);
+            
+            var cancellationToken = CancellationTokenHelper.GetCancellationToken();
+            tiantangRemoteCallService.ActiveElectricBillBonusCard(_accessToken, cancellationToken);
             #endregion
         }
     }

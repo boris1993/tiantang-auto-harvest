@@ -38,7 +38,7 @@ namespace tiantang_auto_harvest.Jobs
                 return Task.CompletedTask;
             }
 
-            TiantangLoginInfo tiantangLoginInfo = tiantangLoginInfoDbContext.TiantangLoginInfo.SingleOrDefault();
+            var tiantangLoginInfo = tiantangLoginInfoDbContext.TiantangLoginInfo.SingleOrDefault();
             if (tiantangLoginInfo == null)
             {
                 _logger.LogInformation("未登录甜糖账号，跳过签到");
@@ -50,7 +50,8 @@ namespace tiantang_auto_harvest.Jobs
             JsonDocument responseJson;
             try
             {
-                responseJson = _tiantangRemoteCallService.DailyCheckIn(tiantangLoginInfo.AccessToken);
+                var cancellationToken = CancellationTokenHelper.GetCancellationToken();
+                responseJson = _tiantangRemoteCallService.DailyCheckIn(tiantangLoginInfo.AccessToken, cancellationToken);
             }
             catch (ExternalApiCallException)
             {
@@ -58,7 +59,7 @@ namespace tiantang_auto_harvest.Jobs
                 return Task.CompletedTask;
             }
 
-            int earnedScore = responseJson.RootElement.GetProperty("data").GetInt32();
+            var earnedScore = responseJson.RootElement.GetProperty("data").GetInt32();
             _logger.LogInformation($"签到成功，获得{earnedScore}点星愿");
 
             return Task.CompletedTask;

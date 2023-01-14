@@ -49,7 +49,8 @@ namespace tiantang_auto_harvest.Jobs
                 JsonDocument responseJson;
                 try
                 {
-                    responseJson = tiantangRemoteCallService.RetrieveUserInfo(tiantangLoginInfo.AccessToken);
+                    var cancellationToken = CancellationTokenHelper.GetCancellationToken();
+                    responseJson = tiantangRemoteCallService.RetrieveUserInfo(tiantangLoginInfo.AccessToken, cancellationToken);
                 }
                 catch (ExternalApiCallException)
                 {
