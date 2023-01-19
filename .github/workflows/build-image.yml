@@ -37,6 +37,7 @@ jobs:
             registry.cn-hangzhou.aliyuncs.com/boris1993/tiantang-auto-harvest
           tags: |
             type=raw,value=latest
+            type=sha
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2      
@@ -65,6 +66,3 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
-
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
