@@ -38,7 +38,7 @@ jobs:
             registry.cn-hangzhou.aliyuncs.com/boris1993/tiantang-auto-harvest
           tags: |
             type=raw,value=latest
-            type=sha
+            type=sha,prefix=
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2      
