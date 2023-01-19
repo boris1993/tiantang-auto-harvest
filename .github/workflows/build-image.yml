@@ -28,6 +28,13 @@ jobs:
           registry: registry.cn-hangzhou.aliyuncs.com
           username: ${{ secrets.ALIYUN_USERNAME }}
           password: ${{ secrets.ALIYUN_PASSWORD }}
+          
+      - name: Login to Tencent Cloud Container Registry
+        uses: docker/login-action@v2.1.0
+        with: 
+          registry: ccr.ccs.tencentyun.com
+          username: ${{ secrets.TENCENT_CLOUD_USERNAME }}
+          password: ${{ secrets.TENCENT_CLOUD_PASSWORD }}
       
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -36,6 +43,7 @@ jobs:
           images: |
             boris1993/tiantang-auto-harvest
             registry.cn-hangzhou.aliyuncs.com/boris1993/tiantang-auto-harvest
+            ccr.ccs.tencentyun.com/boris1993/tiantang-auto-harvest
           tags: |
             type=raw,value=latest
             type=sha,prefix=
