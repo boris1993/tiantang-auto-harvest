@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -128,9 +129,13 @@ namespace tiantang_auto_harvest.Service
                 EnsureSuccessfulResponse(response, out var responseJson);
                 return responseJson;
             }
-            catch (Exception ex)
+            catch (AggregateException ex)
             {
-                _logger.LogError($"SendRequest方法发送请求失败：{ex.Message}");
+                _logger.LogError($"SendRequest方法发送请求失败。错误信息：");
+                ex.InnerExceptions
+                    .Select(innerException => innerException.Message)
+                    .ToList()
+                    .ForEach(message => _logger.LogError(message));
                 throw;
             }
         }
@@ -154,9 +159,13 @@ namespace tiantang_auto_harvest.Service
                 EnsureSuccessfulResponse(response, out var responseJson);
                 return responseJson;
             }
-            catch (Exception ex)
+            catch (AggregateException ex)
             {
-                _logger.LogError($"SendRequestWithoutToken方法发送请求失败：{ex.Message}");
+                _logger.LogError($"SendRequest方法发送请求失败。错误信息：");
+                ex.InnerExceptions
+                    .Select(innerException => innerException.Message)
+                    .ToList()
+                    .ForEach(message => _logger.LogError(message));
                 throw;
             }
         }
