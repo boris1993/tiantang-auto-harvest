@@ -41,9 +41,9 @@ namespace tiantang_auto_harvest.Controllers
         }
 
         [HttpPost]
-        public ActionResult ManuallyRefreshLogin()
+        public async Task<ActionResult> ManuallyRefreshLogin()
         {
-            _appService.RefreshLogin();
+            await _appService.RefreshLogin();
             return new EmptyResult();
         }
 

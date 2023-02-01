@@ -30,13 +30,13 @@ namespace tiantang_auto_harvest.EventListeners
 
         public async Task HandleScoresLoadedEvent(object sender, EventArgs eventArgs)
         {
-            if (eventArgs.GetType() != typeof(TiantangScores))
+            if (eventArgs.GetType() != typeof(TiantangScoresEventArgs))
             {
                 logger.LogError("传入的eventArgs不是TiantangScores类型");
                 return;
             }
 
-            var tiantangScores = (TiantangScores)eventArgs;
+            var tiantangScores = (TiantangScoresEventArgs)eventArgs;
             var accessToken = tiantangScores.AccessToken;
 
             var promoteScore = tiantangScores.PromotionScore;
@@ -47,21 +47,20 @@ namespace tiantang_auto_harvest.EventListeners
             else
             {
                 logger.LogInformation($"正在收取{tiantangScores.PromotionScore}点推广星愿");
-                tiantangRemoteCallService.HarvestPromotionScore(tiantangScores.PromotionScore, tiantangScores.AccessToken);
+                await tiantangRemoteCallService.HarvestPromotionScore(tiantangScores.PromotionScore, tiantangScores.AccessToken);
             }
 
             var deviceScores = tiantangScores.DeviceScores;
-            tiantangRemoteCallService.HarvestDeviceScore(deviceScores, accessToken);
+            await tiantangRemoteCallService.HarvestDeviceScore(deviceScores, accessToken);
 
             var totalDeviceScores = deviceScores.Select(e => e.Value).Sum();
-            using (var scope = serviceProvider.CreateScope())
-            {
-                var notificationRemoteCallService = scope.ServiceProvider.GetService<NotificationRemoteCallService>();
-                await notificationRemoteCallService!.SendNotificationToAllChannels(
-                    new NotificationBody(
-                        $"今日已收取{tiantangScores.PromotionScore + totalDeviceScores}点星愿\n" +
-                        $"包括{tiantangScores.PromotionScore}点推广星愿，和{totalDeviceScores}点设备星愿"));
-            }
+
+            using var scope = serviceProvider.CreateScope();
+            var notificationRemoteCallService = scope.ServiceProvider.GetService<NotificationRemoteCallService>();
+            await notificationRemoteCallService!.SendNotificationToAllChannels(
+                new NotificationBody(
+                    $"今日已收取{tiantangScores.PromotionScore + totalDeviceScores}点星愿\n" +
+                    $"包括{tiantangScores.PromotionScore}点推广星愿，和{totalDeviceScores}点设备星愿"));
         }
     }
 
@@ -71,7 +70,7 @@ namespace tiantang_auto_harvest.EventListeners
         {
             var serviceProvider = app.ApplicationServices;
             var harvestJob = serviceProvider.GetService<HarvestJob>();
-            
+
             // 监听星愿检查完成事件
             async void OnScoresLoadedEventHandler(object sender, EventArgs args)
             {
@@ -80,11 +79,10 @@ namespace tiantang_auto_harvest.EventListeners
             }
 
             harvestJob!.ScoresLoadedEventHandler += OnScoresLoadedEventHandler;
-
         }
     }
 
-    public class TiantangScores : EventArgs
+    public class TiantangScoresEventArgs : EventArgs
     {
         public string AccessToken { get; set; }
 
@@ -96,6 +94,6 @@ namespace tiantang_auto_harvest.EventListeners
         /// <summary>
         /// Key是节点ID，value是此节点当日可收取的点数
         /// </summary>
-        public Dictionary<string, int> DeviceScores = new Dictionary<string, int>();
+        public Dictionary<string, int> DeviceScores { get; } = new Dictionary<string, int>();
     }
 }

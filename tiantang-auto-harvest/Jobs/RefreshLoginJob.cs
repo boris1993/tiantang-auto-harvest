@@ -28,45 +28,41 @@ namespace tiantang_auto_harvest.Jobs
             _tiantangRemoteCallService = tiantangRemoteCallService;
         }
 
-        public Task Execute(IJobExecutionContext context)
+        public async Task Execute(IJobExecutionContext context)
         {
-            using (var scope = _serviceProvider.CreateScope())
+            using var scope = _serviceProvider.CreateScope();
+            var defaultDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
+            var tiantangLoginInfo = defaultDbContext!.TiantangLoginInfo.SingleOrDefault();
+            if (tiantangLoginInfo == null)
             {
-                var defaultDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
-                var tiantangLoginInfo = defaultDbContext!.TiantangLoginInfo.SingleOrDefault();
-                if (tiantangLoginInfo == null)
-                {
-                    _logger.LogInformation("无甜糖星愿登录信息，跳过自动刷新登录");
-                    return Task.CompletedTask;
-                }
-
-                var accessToken = tiantangLoginInfo.AccessToken;
-                var tokenBody = accessToken.Split('.')[1].PaddingBase64String();
-                var decodedToken = Encoding.UTF8.GetString(Convert.FromBase64String(tokenBody));
-                var jsonTokenBody = JsonDocument.Parse(decodedToken);
-                var expireTime = DateTimeOffset.FromUnixTimeSeconds(jsonTokenBody.RootElement.GetProperty("exp").GetInt32());
-                var currentDate = DateTime.Now;
-
-                if ((expireTime - currentDate).TotalHours > 24)
-                {
-                    _logger.LogInformation("Token有效期大于24小时，跳过刷新");
-                    return Task.CompletedTask;
-                }
-
-                _logger.LogInformation("Token有效期不足24小时，将刷新登录");
-
-                var cancellationToken = CancellationTokenHelper.GetCancellationToken();
-                var unionId = tiantangLoginInfo.UnionId;
-                var responseJson = _tiantangRemoteCallService.RefreshLogin(unionId, cancellationToken);
-                var newToken = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
-                tiantangLoginInfo.AccessToken = newToken;
-
-                _logger.LogInformation($"新token为 {newToken}");
-
-                defaultDbContext.SaveChanges();
+                _logger.LogInformation("无甜糖星愿登录信息，跳过自动刷新登录");
+                return;
             }
 
-            return Task.CompletedTask;
+            var accessToken = tiantangLoginInfo.AccessToken;
+            var tokenBody = accessToken.Split('.')[1].PaddingBase64String();
+            var decodedToken = Encoding.UTF8.GetString(Convert.FromBase64String(tokenBody));
+            var jsonTokenBody = JsonDocument.Parse(decodedToken);
+            var expireTime = DateTimeOffset.FromUnixTimeSeconds(jsonTokenBody.RootElement.GetProperty("exp").GetInt32());
+            var currentDate = DateTime.Now;
+
+            if ((expireTime - currentDate).TotalHours > 24)
+            {
+                _logger.LogInformation("Token有效期大于24小时，跳过刷新");
+                return;
+            }
+
+            _logger.LogInformation("Token有效期不足24小时，将刷新登录");
+
+            var cancellationToken = CancellationTokenHelper.GetCancellationToken();
+            var unionId = tiantangLoginInfo.UnionId;
+            var responseJson = await _tiantangRemoteCallService.RefreshLogin(unionId, cancellationToken);
+            var newToken = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
+            tiantangLoginInfo.AccessToken = newToken;
+
+            _logger.LogInformation("新token为 {NewToken}", newToken);
+
+            await defaultDbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

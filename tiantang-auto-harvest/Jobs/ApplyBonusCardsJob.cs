@@ -28,51 +28,47 @@ namespace tiantang_auto_harvest.Jobs
             this.tiantangRemoteCallService = tiantangRemoteCallService;
         }
 
-        public Task Execute(IJobExecutionContext context)
+        public async Task Execute(IJobExecutionContext context)
         {
-            using (var scope = serviceProvider.CreateScope())
+            using var scope = serviceProvider.CreateScope();
+            var defaultDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
+            var tiantangLoginInfo = defaultDbContext!.TiantangLoginInfo.SingleOrDefault();
+            if (tiantangLoginInfo == null)
             {
-                var defaultDbContext = scope.ServiceProvider.GetService<DefaultDbContext>();
-                var tiantangLoginInfo = defaultDbContext!.TiantangLoginInfo.SingleOrDefault();
-                if (tiantangLoginInfo == null)
-                {
-                    logger.LogInformation("未登录甜糖账号，跳过检查和使用加成卡");
-                    return Task.CompletedTask;
-                }
-
-                _accessToken = tiantangLoginInfo.AccessToken;
-
-                JsonDocument activatedBonusCardResponse;
-                try
-                {
-                    var cancellationToken = CancellationTokenHelper.GetCancellationToken();
-                    activatedBonusCardResponse = tiantangRemoteCallService.RetrieveActivatedBonusCards(_accessToken, cancellationToken);
-                }
-                catch (ExternalApiCallException)
-                {
-                    logger.LogError("获取当前启用的加成卡失败，请参考日志");
-                    return Task.CompletedTask;
-                }
-
-                JsonDocument allBonusCardsResponse;
-                try
-                {
-                    var cancellationToken = CancellationTokenHelper.GetCancellationToken();
-                    allBonusCardsResponse = tiantangRemoteCallService.RetrieveAllBonusCards(_accessToken, cancellationToken);
-                }
-                catch (ExternalApiCallException)
-                {
-                    logger.LogError("获取全部加成卡失败，请参考日志");
-                    return Task.CompletedTask;
-                }
-
-                CheckAndApplyElectricBillBonus(activatedBonusCardResponse, allBonusCardsResponse);
+                logger.LogInformation("未登录甜糖账号，跳过检查和使用加成卡");
+                return;
             }
 
-            return Task.CompletedTask;
+            _accessToken = tiantangLoginInfo.AccessToken;
+
+            JsonDocument activatedBonusCardResponse;
+            try
+            {
+                var cancellationToken = CancellationTokenHelper.GetCancellationToken();
+                activatedBonusCardResponse = await tiantangRemoteCallService.RetrieveActivatedBonusCards(_accessToken, cancellationToken);
+            }
+            catch (ExternalApiCallException)
+            {
+                logger.LogError("获取当前启用的加成卡失败，请参考日志");
+                return;
+            }
+
+            JsonDocument allBonusCardsResponse;
+            try
+            {
+                var cancellationToken = CancellationTokenHelper.GetCancellationToken();
+                allBonusCardsResponse = await tiantangRemoteCallService.RetrieveAllBonusCards(_accessToken, cancellationToken);
+            }
+            catch (ExternalApiCallException)
+            {
+                logger.LogError("获取全部加成卡失败，请参考日志");
+                return;
+            }
+
+            await CheckAndApplyElectricBillBonus(activatedBonusCardResponse, allBonusCardsResponse);
         }
 
-        private void CheckAndApplyElectricBillBonus(JsonDocument activatedBonusCardResponse, JsonDocument allBonusCardsResponse)
+        private async Task CheckAndApplyElectricBillBonus(JsonDocument activatedBonusCardResponse, JsonDocument allBonusCardsResponse)
         {
             #region 检查电费卡数量
             var electricBillBonusCardInfo =
@@ -126,7 +122,7 @@ namespace tiantang_auto_harvest.Jobs
             logger.LogInformation("正在激活电费卡");
             
             var cancellationToken = CancellationTokenHelper.GetCancellationToken();
-            tiantangRemoteCallService.ActiveElectricBillBonusCard(_accessToken, cancellationToken);
+            await tiantangRemoteCallService.ActiveElectricBillBonusCard(_accessToken, cancellationToken);
             #endregion
         }
     }

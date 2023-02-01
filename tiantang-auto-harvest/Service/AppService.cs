@@ -101,7 +101,7 @@ namespace tiantang_auto_harvest.Service
             await _defaultDbContext.SaveChangesAsync();
         }
 
-        public void RefreshLogin()
+        public async Task RefreshLogin()
         {
             var tiantangLoginInfo = _defaultDbContext.TiantangLoginInfo.SingleOrDefault();
             if (tiantangLoginInfo == null)
@@ -112,7 +112,7 @@ namespace tiantang_auto_harvest.Service
             _logger.LogInformation("正在刷新{PhoneNumber}的token", tiantangLoginInfo.PhoneNumber);
 
             var unionId = tiantangLoginInfo.UnionId;
-            var responseJson = _tiantangRemoteCallService.RefreshLogin(unionId);
+            var responseJson = await _tiantangRemoteCallService.RefreshLogin(unionId);
 
             var newToken = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
             tiantangLoginInfo.AccessToken = newToken;

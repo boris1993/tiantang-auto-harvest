@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using tiantang_auto_harvest.Constants;
 using tiantang_auto_harvest.Exceptions;
@@ -23,54 +24,54 @@ namespace tiantang_auto_harvest.Service
             _httpClient = httpClient;
         }
 
-        public JsonDocument RefreshLogin(string unionId, CancellationToken cancellationToken = default) =>
-            SendRequestWithoutToken(
+        public async Task<JsonDocument> RefreshLogin(string unionId, CancellationToken cancellationToken = default) =>
+            await SendRequestWithoutToken(
                 new Uri(TiantangBackendURLs.RefreshLogin),
                 HttpMethod.Post,
                 JsonContent.Create(new {union_id = unionId}),
                 cancellationToken);
 
-        public JsonDocument DailyCheckIn(string accessToken, CancellationToken cancellationToken = default) =>
-            SendRequest(new Uri(TiantangBackendURLs.DailyCheckInUrl),
+        public async Task<JsonDocument> DailyCheckIn(string accessToken, CancellationToken cancellationToken = default) =>
+            await SendRequest(new Uri(TiantangBackendURLs.DailyCheckInUrl),
                 HttpMethod.Post,
                 accessToken,
                 cancellationToken: cancellationToken);
 
-        public JsonDocument RetrieveUserInfo(string accessToken, CancellationToken cancellationToken = default) =>
-            SendRequest(new Uri(TiantangBackendURLs.UserInfoUrl),
+        public async Task<JsonDocument> RetrieveUserInfo(string accessToken, CancellationToken cancellationToken = default) =>
+            await SendRequest(new Uri(TiantangBackendURLs.UserInfoUrl),
                 HttpMethod.Post,
                 accessToken,
                 cancellationToken: cancellationToken);
 
-        public JsonDocument RetrieveNodes(string accessToken) =>
-            SendRequest(new Uri(TiantangBackendURLs.DevicesListUrl), HttpMethod.Get, accessToken);
+        public async Task<JsonDocument> RetrieveNodes(string accessToken) =>
+            await SendRequest(new Uri(TiantangBackendURLs.DevicesListUrl), HttpMethod.Get, accessToken);
 
-        public JsonDocument HarvestPromotionScore(int promotionScore, string accessToken)
+        public async Task<JsonDocument> HarvestPromotionScore(int promotionScore, string accessToken)
         {
             var body = new Dictionary<string, int>
             {
                 ["score"] = promotionScore,
             };
 
-            return SendRequest(new Uri(TiantangBackendURLs.HarvestPromotionScores),
+            return await SendRequest(new Uri(TiantangBackendURLs.HarvestPromotionScores),
                 HttpMethod.Post,
                 accessToken,
                 body);
         }
 
-        public JsonDocument RetrieveAllBonusCards(string accessToken, CancellationToken cancellationToken = default) =>
-            SendRequest(new Uri(TiantangBackendURLs.GetActivatedBonusCards),
+        public async Task<JsonDocument> RetrieveAllBonusCards(string accessToken, CancellationToken cancellationToken = default) =>
+            await SendRequest(new Uri(TiantangBackendURLs.GetActivatedBonusCards),
                 HttpMethod.Get,
                 accessToken,
                 cancellationToken: cancellationToken);
 
-        public JsonDocument RetrieveActivatedBonusCards(string accessToken, CancellationToken cancellationToken = default) =>
-            SendRequest(new Uri(TiantangBackendURLs.GetActivatedBonusCardStatus),
+        public async Task<JsonDocument> RetrieveActivatedBonusCards(string accessToken, CancellationToken cancellationToken = default) =>
+            await SendRequest(new Uri(TiantangBackendURLs.GetActivatedBonusCardStatus),
                 HttpMethod.Get,
                 accessToken,
                 cancellationToken: cancellationToken);
 
-        public void HarvestDeviceScore(Dictionary<string, int> devices, string accessToken)
+        public async Task HarvestDeviceScore(Dictionary<string, int> devices, string accessToken)
         {
             var uri = new Uri(TiantangBackendURLs.HarvestDeviceScores);
             foreach (var device in devices)
@@ -87,20 +88,20 @@ namespace tiantang_auto_harvest.Service
                     ["device_id"] = device.Key,
                     ["score"] = device.Value,
                 };
-                SendRequest(uri,
+                await SendRequest(uri,
                     HttpMethod.Post,
                     accessToken,
                     body);
             }
         }
 
-        public void ActiveElectricBillBonusCard(string accessToken, CancellationToken cancellationToken = default) =>
-            SendRequest(new Uri(TiantangBackendURLs.ActiveElectricBillBonusCard),
+        public async Task ActiveElectricBillBonusCard(string accessToken, CancellationToken cancellationToken = default) =>
+            await SendRequest(new Uri(TiantangBackendURLs.ActiveElectricBillBonusCard),
                 HttpMethod.Put,
                 accessToken,
                 cancellationToken: cancellationToken);
 
-        private JsonDocument SendRequest(
+        private async Task<JsonDocument> SendRequest(
             Uri uri,
             HttpMethod httpMethod,
             string accessToken,
@@ -122,12 +123,12 @@ namespace tiantang_auto_harvest.Service
 
             try
             {
-                var response = _httpClient.SendAsync(httpRequestMessage, cancellationToken).Result;
+                using var response = await _httpClient.SendAsync(httpRequestMessage, cancellationToken);
 
                 _logger.LogDebug("Response = {Response}", response.ToString());
 
-                EnsureSuccessfulResponse(response, out var responseJson);
-                return responseJson;
+                await EnsureSuccessfulResponse(response, cancellationToken);
+                return JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
             }
             catch (Exception ex) when (
                 ex is ArgumentNullException
@@ -149,7 +150,7 @@ namespace tiantang_auto_harvest.Service
             }
         }
 
-        private JsonDocument SendRequestWithoutToken(
+        private async Task<JsonDocument> SendRequestWithoutToken(
             Uri uri,
             HttpMethod httpMethod,
             HttpContent body = default,
@@ -164,9 +165,9 @@ namespace tiantang_auto_harvest.Service
 
             try
             {
-                var response = _httpClient.SendAsync(httpRequestMessage, cancellationToken).Result;
-                EnsureSuccessfulResponse(response, out var responseJson);
-                return responseJson;
+                using var response = await _httpClient.SendAsync(httpRequestMessage, cancellationToken);
+                await EnsureSuccessfulResponse(response, cancellationToken);
+                return JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
             }
             catch (Exception ex) when (
                 ex is ArgumentNullException
@@ -188,24 +189,24 @@ namespace tiantang_auto_harvest.Service
             }
         }
 
-        private void EnsureSuccessfulResponse(HttpResponseMessage response, out JsonDocument responseJson)
+        private async Task EnsureSuccessfulResponse(HttpResponseMessage response, CancellationToken cancellationToken)
         {
-            var responseBody = response.Content.ReadAsStringAsync().Result;
+            if (!response.IsSuccessStatusCode)
+            {
+                var statusCode = response.StatusCode;
+                _logger.LogError("请求失败，HTTP返回码 {StatusCode} ，错误信息：{ErrorMessage}", statusCode);
+                throw new ExternalApiCallException(statusCode);
+            }
+            
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogDebug("ResponseBody = {ResponseBody}", responseBody);
 
-            responseJson = JsonDocument.Parse(responseBody);
+            var responseJson = JsonDocument.Parse(responseBody);
             var errCode = responseJson.RootElement.GetProperty("errCode").GetInt32();
             var errorMessage = responseJson.RootElement.GetProperty("msg").GetString();
 
             _logger.LogDebug("HTTP状态码为 {StatusCode}", response.StatusCode);
             _logger.LogDebug("errCode={ErrCode}, errorMessage={ErrorMessage}", errCode, errorMessage);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var statusCode = response.StatusCode;
-                _logger.LogError("请求失败，HTTP返回码 {StatusCode} ，错误信息：{ErrorMessage}", statusCode, errorMessage);
-                throw new ExternalApiCallException(errorMessage, statusCode);
-            }
 
             if (errCode != 0)
             {
