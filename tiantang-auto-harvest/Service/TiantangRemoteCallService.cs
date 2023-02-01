@@ -129,13 +129,22 @@ namespace tiantang_auto_harvest.Service
                 EnsureSuccessfulResponse(response, out var responseJson);
                 return responseJson;
             }
+            catch (Exception ex) when (
+                ex is ArgumentNullException
+                      or InvalidOperationException
+                      or HttpRequestException
+                      or TaskCancelledException)
+            {
+                _logger.LogError("SendRequest方法发送请求失败。错误信息：{exception}", ex);
+                throw;
+            }
             catch (AggregateException ex)
             {
                 _logger.LogError($"SendRequest方法发送请求失败。错误信息：");
                 ex.InnerExceptions
                     .Select(innerException => innerException.Message)
                     .ToList()
-                    .ForEach(message => _logger.LogError(message));
+                    .ForEach(message => _logger.LogError("{message}", message));
                 throw;
             }
         }
@@ -158,6 +167,15 @@ namespace tiantang_auto_harvest.Service
                 var response = _httpClient.SendAsync(httpRequestMessage, cancellationToken).Result;
                 EnsureSuccessfulResponse(response, out var responseJson);
                 return responseJson;
+            }
+            catch (Exception ex) when (
+                ex is ArgumentNullException
+                      or InvalidOperationException
+                      or HttpRequestException
+                      or TaskCancelledException)
+            {
+                _logger.LogError("SendRequest方法发送请求失败。错误信息：{exception}", ex);
+                throw;
             }
             catch (AggregateException ex)
             {
