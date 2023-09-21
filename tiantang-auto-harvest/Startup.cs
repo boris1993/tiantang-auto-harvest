@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -43,16 +44,10 @@ namespace tiantang_auto_harvest
 
             services.AddScoped<AppService>();
             services.AddScoped<NotificationRemoteCallService>();
-            services.AddHttpClient<AppService>(client =>
-            {
-                client.BaseAddress = new Uri(TiantangBackendURLs.BaseUrl);
-                client.Timeout = TimeSpan.FromSeconds(10);
-                client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), TiantangBackendURLs.UserAgent);
-                client.DefaultRequestHeaders.Add(HttpRequestHeader.AcceptEncoding.ToString(), TiantangBackendURLs.AcceptEncoding);
-                
-            });
             services.AddSingleton<TiantangRemoteCallService>();
             services.AddSingleton<ScoreLoadedEventHandler>();
+            services.AddHttpClient<AppService>(ConfigureHttpClientDefaults);
+            services.AddHttpClient<TiantangRemoteCallService>(ConfigureHttpClientDefaults);
 
             services.AddLogging(builder =>
             {
@@ -136,6 +131,15 @@ namespace tiantang_auto_harvest
             defaultDbContext.Database.Migrate();
 
             app.UseScoreLoadedEventHandler();
+        }
+
+        private void ConfigureHttpClientDefaults(HttpClient client)
+        {
+            client.BaseAddress = new Uri(TiantangBackendURLs.BaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(10);
+            client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), TiantangBackendURLs.UserAgent);
+            client.DefaultRequestHeaders.Add("version", "{appVersion: 2.3.8}");
+            client.DefaultRequestHeaders.Add(HttpRequestHeader.AcceptEncoding.ToString(), TiantangBackendURLs.AcceptEncoding);
         }
     }
 }

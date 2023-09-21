@@ -124,7 +124,6 @@ namespace tiantang_auto_harvest.Service
             try
             {
                 using var response = await _httpClient.SendAsync(httpRequestMessage, cancellationToken);
-
                 _logger.LogDebug("Response = {Response}", response.ToString());
 
                 await EnsureSuccessfulResponse(response, cancellationToken);
@@ -162,10 +161,13 @@ namespace tiantang_auto_harvest.Service
                 RequestUri = uri,
                 Content = body,
             };
+            _logger.LogDebug("httpRequestMessage = {HttpRequestMessage}", httpRequestMessage);
 
             try
             {
                 using var response = await _httpClient.SendAsync(httpRequestMessage, cancellationToken);
+                _logger.LogDebug("Response = {Response}", response.ToString());
+                
                 await EnsureSuccessfulResponse(response, cancellationToken);
                 return JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
             }

@@ -2,7 +2,7 @@
 {
     public static class TiantangBackendURLs
     {
-        public const string UserAgent = "Dart/2.17 (dart:io)";
+        public const string UserAgent = "Dart/3.0 (dart:io)";
         public const string AcceptEncoding = "gzip";
         
         public const string BaseUrl = "http://tiptime-api.com";
