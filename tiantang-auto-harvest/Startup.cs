@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.Extensions.Http;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
@@ -28,7 +30,6 @@ namespace tiantang_auto_harvest
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-
             // Create the folder for storing the data
             Directory.CreateDirectory($"{AppContext.BaseDirectory}/data");
         }
@@ -46,8 +47,12 @@ namespace tiantang_auto_harvest
             services.AddScoped<NotificationRemoteCallService>();
             services.AddSingleton<TiantangRemoteCallService>();
             services.AddSingleton<ScoreLoadedEventHandler>();
-            services.AddHttpClient<AppService>(ConfigureHttpClientDefaults);
-            services.AddHttpClient<TiantangRemoteCallService>(ConfigureHttpClientDefaults);
+            services.AddHttpClient<AppService>(ConfigureHttpClientDefaults)
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5))
+                .AddPolicyHandler(GetRetryPolicy());
+            services.AddHttpClient<TiantangRemoteCallService>(ConfigureHttpClientDefaults)
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5))
+                .AddPolicyHandler(GetRetryPolicy());
 
             services.AddLogging(builder =>
             {
@@ -140,6 +145,13 @@ namespace tiantang_auto_harvest
             client.DefaultRequestHeaders.Add(HttpRequestHeader.UserAgent.ToString(), TiantangBackendURLs.UserAgent);
             client.DefaultRequestHeaders.Add("version", "{appVersion: 2.3.8}");
             client.DefaultRequestHeaders.Add(HttpRequestHeader.AcceptEncoding.ToString(), TiantangBackendURLs.AcceptEncoding);
+        }
+
+        private IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+        {
+            return HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
         }
     }
 }
