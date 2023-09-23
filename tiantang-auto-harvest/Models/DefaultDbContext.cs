@@ -7,7 +7,6 @@ namespace tiantang_auto_harvest.Models
     {
         public DbSet<TiantangLoginInfo> TiantangLoginInfo { get; set; }
         public DbSet<PushChannelConfiguration> PushChannelKeys { get; set; }
-        public DbSet<UnsendNotification> UnsendNotifications { get; set; }
 
         public DefaultDbContext(DbContextOptions<DefaultDbContext> options) : base(options)
         { }
@@ -41,16 +40,5 @@ namespace tiantang_auto_harvest.Models
         public string ServiceName { get; set; }
         public string Token { get; set; }
         public string Secret { get; set; }
-    }
-
-    public class UnsendNotification
-    {
-        public UnsendNotification(string content)
-        {
-            Content = content;
-        }
-
-        public int Id { get; set; }
-        public string Content { get; set; }
     }
 }
