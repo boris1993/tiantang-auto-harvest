@@ -6,6 +6,6 @@ updates:
       interval: daily
 
   - package-ecosystem: nuget
-    directory: "/"
+    directory: "/tiantang-auto-harvest"
     schedule:
       interval: daily
