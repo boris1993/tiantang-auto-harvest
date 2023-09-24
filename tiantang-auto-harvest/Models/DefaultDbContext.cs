@@ -1,14 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace tiantang_auto_harvest.Models
 {
-    public class DefaultDbContext : DbContext, IDataProtectionKeyContext
+    public class DefaultDbContext : DbContext
     {
         public DbSet<TiantangLoginInfo> TiantangLoginInfo { get; set; }
         public DbSet<PushChannelConfiguration> PushChannelKeys { get; set; }
-        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
         public DefaultDbContext(DbContextOptions<DefaultDbContext> options) : base(options)
         { }
@@ -19,8 +17,6 @@ namespace tiantang_auto_harvest.Models
                 .HasIndex(entity => entity.PhoneNumber)
                 .IsUnique();
         }
-
-        
     }
 
     public class TiantangLoginInfo

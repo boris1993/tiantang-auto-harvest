@@ -16,23 +16,6 @@ namespace tiantang_auto_harvest.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.11");
 
-            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("FriendlyName")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Xml")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("DataProtectionKeys");
-                });
-
             modelBuilder.Entity("tiantang_auto_harvest.Models.PushChannelConfiguration", b =>
                 {
                     b.Property<int>("Id")
