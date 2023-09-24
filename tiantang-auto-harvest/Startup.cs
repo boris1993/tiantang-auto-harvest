@@ -27,18 +27,15 @@ namespace tiantang_auto_harvest
 {
     public class Startup
     {
-        private readonly ILogger<Startup> _logger;
+        private IConfiguration Configuration { get; }
+        private ILogger<Startup> _logger;
 
-        public Startup(IConfiguration configuration, ILogger<Startup> logger)
+        public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            _logger = logger;
-
             // Create the folder for storing the data
             Directory.CreateDirectory($"{AppContext.BaseDirectory}/data");
         }
-
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -103,9 +100,12 @@ namespace tiantang_auto_harvest
         public void Configure(
             IApplicationBuilder app,
             IWebHostEnvironment env,
-            DefaultDbContext defaultDbContext
+            DefaultDbContext defaultDbContext,
+            ILogger<Startup> logger
         )
         {
+            _logger = logger;
+            
             app.UseExceptionHandler(applicationBuilder => applicationBuilder.Run(async context =>
             {
                 var exception = context.Features.Get<IExceptionHandlerPathFeature>()?.Error;
