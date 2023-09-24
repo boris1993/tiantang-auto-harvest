@@ -27,9 +27,13 @@ namespace tiantang_auto_harvest
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private readonly ILogger<Startup> _logger;
+
+        public Startup(IConfiguration configuration, ILogger<Startup> logger)
         {
             Configuration = configuration;
+            _logger = logger;
+
             // Create the folder for storing the data
             Directory.CreateDirectory($"{AppContext.BaseDirectory}/data");
         }
@@ -117,7 +121,7 @@ namespace tiantang_auto_harvest
                     statusCode = HttpStatusCode.InternalServerError;
                 }
 
-                context.Response.StatusCode = (int) statusCode;
+                context.Response.StatusCode = (int)statusCode;
                 await context.Response.WriteAsJsonAsync(errorResponseBody);
             }));
 
@@ -151,7 +155,12 @@ namespace tiantang_auto_harvest
         {
             return HttpPolicyExtensions
                 .HandleTransientHttpError()
-                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+                .WaitAndRetryAsync(3, 
+                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                    (exception, TimeSpan, retryCount) =>
+                    {
+                        _logger.LogWarning($"发生{exception.Exception.Message}异常，进行第{retryCount}次重试");
+                    });
         }
     }
 }
