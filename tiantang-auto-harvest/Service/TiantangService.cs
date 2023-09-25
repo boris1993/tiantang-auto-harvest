@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using tiantang_auto_harvest.Constants;
 using tiantang_auto_harvest.EventListeners;
 using tiantang_auto_harvest.Exceptions;
 using tiantang_auto_harvest.Models;
@@ -125,6 +128,99 @@ namespace tiantang_auto_harvest.Service
 
             // 星愿检查完成后发送事件
             _scoresLoadedEventHandler?.Invoke(this, tiantangScores);
+        }
+
+        public async Task CheckAndApplyElectricBillBonus()
+        {
+            var tiantangLoginInfo = await _dbContext.TiantangLoginInfo.SingleOrDefaultAsync();
+            if (tiantangLoginInfo == null)
+            {
+                _logger.LogInformation("未登录甜糖账号，跳过收取星愿");
+                return;
+            }
+
+            var accessToken = tiantangLoginInfo.AccessToken;
+
+            CancellationToken cancellationToken;
+            
+            JsonDocument activatedBonusCardResponse;
+            try
+            {
+                cancellationToken = CancellationTokenHelper.GetCancellationToken();
+                activatedBonusCardResponse = await _tiantangRemoteCallService.RetrieveActivatedBonusCards(accessToken, cancellationToken);
+            }
+            catch (ExternalApiCallException)
+            {
+                _logger.LogError("获取当前启用的加成卡失败，请参考日志");
+                return;
+            }
+
+            JsonDocument allBonusCardsResponse;
+            try
+            {
+                cancellationToken = CancellationTokenHelper.GetCancellationToken();
+                allBonusCardsResponse = await _tiantangRemoteCallService.RetrieveAllBonusCards(accessToken, cancellationToken);
+            }
+            catch (ExternalApiCallException)
+            {
+                _logger.LogError("获取全部加成卡失败，请参考日志");
+                return;
+            }
+            
+            #region 检查电费卡数量
+            var electricBillBonusCardInfo =
+                allBonusCardsResponse
+                    .RootElement
+                    .GetProperty("data")
+                    .EnumerateArray()
+                    .SingleOrDefault(element => 
+                        element.GetProperty("prop_id").GetInt32().ToString() == TiantangBonusCardTypes.ElectricBillBonus);
+
+            if (electricBillBonusCardInfo.ValueKind == JsonValueKind.Undefined)
+            {
+                _logger.LogInformation("无可用电费卡，跳过检查和启用电费卡");
+                return;
+            }
+
+            var remainingElectricBillBonusCardNumber = electricBillBonusCardInfo.GetProperty("count").GetInt32().ToString();
+            _logger.LogInformation($"剩余{remainingElectricBillBonusCardNumber}张电费卡");
+            #endregion
+
+            #region 检查当前有无正在生效的电费卡
+            var currentActivatedElectricBillBonus =
+                activatedBonusCardResponse
+                    .RootElement
+                    .GetProperty("data")
+                    .EnumerateArray()
+                    .SingleOrDefault(element => element.GetProperty("name").GetString() == "电费卡");
+
+            if (currentActivatedElectricBillBonus.ValueKind != JsonValueKind.Undefined)
+            {
+                var expireEpoch = currentActivatedElectricBillBonus.GetProperty("ended_at").GetInt32();
+                var expireDate = DateTimeOffset.FromUnixTimeSeconds(expireEpoch).ToString("yyyy-MM-dd HH:mm:ss");
+                _logger.LogInformation($"已有激活的电费卡，将于{expireDate}过期");
+                return;
+            }
+            #endregion
+
+            #region 激活电费卡
+            var isElectricBillBonusCardExist = allBonusCardsResponse
+                .RootElement
+                .GetProperty("data")
+                .EnumerateArray()
+                .Any(element => element.GetProperty("prop_id").GetInt32().ToString() == TiantangBonusCardTypes.ElectricBillBonus);
+
+            if (!isElectricBillBonusCardExist)
+            {
+                _logger.LogInformation("无可用电费卡");
+                return;
+            }
+
+            _logger.LogInformation("正在激活电费卡");
+            
+            cancellationToken = CancellationTokenHelper.GetCancellationToken();
+            await _tiantangRemoteCallService.ActiveElectricBillBonusCard(accessToken, cancellationToken);
+            #endregion
         }
     }
 }
