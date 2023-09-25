@@ -48,6 +48,7 @@ namespace tiantang_auto_harvest
                 options.UseSqlite($"Data Source={AppContext.BaseDirectory}/data/database.db"));
 
             services.AddScoped<AppService>();
+            services.AddScoped<TiantangService>();
             services.AddScoped<NotificationRemoteCallService>();
             services.AddSingleton<TiantangRemoteCallService>();
             services.AddSingleton<ScoreLoadedEventHandler>();
@@ -146,8 +147,6 @@ namespace tiantang_auto_harvest
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
-
-            app.UseScoreLoadedEventHandler();
         }
 
         private void ConfigureHttpClientDefaults(HttpClient client)
