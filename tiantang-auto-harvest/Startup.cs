@@ -48,6 +48,7 @@ namespace tiantang_auto_harvest
                 options.UseSqlite($"Data Source={AppContext.BaseDirectory}/data/database.db"));
 
             services.AddScoped<AppService>();
+            services.AddScoped<TiantangService>();
             services.AddScoped<NotificationRemoteCallService>();
             services.AddSingleton<TiantangRemoteCallService>();
             services.AddSingleton<ScoreLoadedEventHandler>();
