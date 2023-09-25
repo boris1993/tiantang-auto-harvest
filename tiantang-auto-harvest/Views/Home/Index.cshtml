@@ -34,7 +34,7 @@
                            name="captcha_id"
                            style="display: none"/>
                     <!-- endregion -->
-                    
+
                     <div class="form-group row align-items-center margin-left-right">
                         <label for="phone_number" class="col-4 col-form-label text-right no-left-padding">手机号码</label>
                         <div class="col-4 no-left-padding">
@@ -64,6 +64,27 @@
                         <label for="current_phone_number" class="col-6 col-form-label text-right no-left-padding">当前登录的手机号：</label>
                         <div class="col-4 no-left-padding">
                             <input type="text" readonly disabled class="form-control-plaintext" id="current_phone_number" value="">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div>
+                <h1 class="title text-center">手动执行操作</h1>
+                <form class="border padding-top">
+                    <div class="form-group row margin-left-right">
+                        <div class="col">
+                            <input type="button" class="btn-block" id="signin" value="手动签到" onclick="manualSignin()">
+                        </div>
+                        <div class="col">
+                            <input type="button" class="btn-block" id="signin" value="手动收取星愿" onclick="manualHarvest()">
+                        </div>
+                    </div>
+                    <div class="form-group row margin-left-right">
+                        <div class="col">
+                            <input type="button" class="btn-block" id="signin" value="手动激活电费卡" onclick="manualCheckAndApplyElectricBillBonus()">
+                        </div>
+                        <div class="col">
+                            <input type="button" class="btn-block" id="signin" value="手动刷新token" onclick="manualRefreshLogin()">
                         </div>
                     </div>
                 </form>

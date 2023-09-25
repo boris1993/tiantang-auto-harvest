@@ -3,11 +3,11 @@
 function sendSMSCode() {
     document.getElementById("get_sms_code").disabled = true;
     
-    let phoneNumber = document.getElementById("phone_number").value;
-    let captchaId = document.getElementById("captcha_id").value;
-    let captchaCode = document.getElementById("captcha_code").value;
-    
-    let xhr = new XMLHttpRequest();
+    const phoneNumber = document.getElementById("phone_number").value;
+    const captchaId = document.getElementById("captcha_id").value;
+    const captchaCode = document.getElementById("captcha_code").value;
+
+    const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/SendSMS", true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.send(JSON.stringify({
@@ -21,16 +21,16 @@ function sendSMSCode() {
             document.getElementById("get_sms_code").disabled = false;
             
             if (xhr.status === 400) {
-                let responseJson = JSON.parse(xhr.responseText);
+                const responseJson = JSON.parse(xhr.responseText);
 
                 let alertMessage = "";
-                for (const [key, value] of Object.entries(responseJson["errors"])) {
+                for (const [_, value] of Object.entries(responseJson["errors"])) {
                     alertMessage += `${value}\n`;
                 }
                 
                 alert(alertMessage);
             } else if (xhr.status !== 200) {
-                let alertMessage = "服务器出现错误：\n" + xhr.responseText;
+                const alertMessage = "服务器出现错误：\n" + xhr.responseText;
                 alert(alertMessage);
             }
         }
@@ -40,22 +40,22 @@ function sendSMSCode() {
 function getCaptchaImage() {
     document.getElementById("get_captcha_image").disabled = true;
     document.getElementById("captcha_image").src = "";
-    
-    let xhr = new XMLHttpRequest();
+
+    const xhr = new XMLHttpRequest();
     xhr.open("GET", "/Api/GetCaptchaImage", true);
     xhr.send();
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
             if (xhr.status !== 200) {
-                let alertMessage = "服务器出现错误：\n" + xhr.responseText;
+                const alertMessage = "服务器出现错误：\n" + xhr.responseText;
                 alert(alertMessage);
 
                 return;
             }
 
-            let responseText = xhr.responseText;
+            const responseText = xhr.responseText;
             if (responseText) {
-                let responseJson = JSON.parse(responseText);
+                const responseJson = JSON.parse(responseText);
                 document.getElementById("captcha_image").src = responseJson["captchaUrl"];
                 document.getElementById("captcha_id").value = responseJson["captchaId"];
                 
@@ -71,9 +71,9 @@ function getCaptchaImage() {
 function verifySMSCode() {
     document.getElementById("verify_sms_code").disabled = true;
     
-    let phoneNumber = document.getElementById("phone_number").value;
-    let smsCode = document.getElementById("sms_code").value;
-    let xhr = new XMLHttpRequest();
+    const phoneNumber = document.getElementById("phone_number").value;
+    const smsCode = document.getElementById("sms_code").value;
+    const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/VerifyCode", true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.send(JSON.stringify({
@@ -86,10 +86,10 @@ function verifySMSCode() {
             document.getElementById("verify_sms_code").disabled = false;
             
             if (xhr.status === 400) {
-                let responseJson = JSON.parse(xhr.responseText);
+                const responseJson = JSON.parse(xhr.responseText);
 
                 let alertMessage = "";
-                for (const [key, value] of Object.entries(responseJson["errors"])) {
+                for (const [_, value] of Object.entries(responseJson["errors"])) {
                     alertMessage += `${value}\n`;
                 }
                 
@@ -97,7 +97,7 @@ function verifySMSCode() {
 
                 return;
             } else if (xhr.status !== 200) {
-                let alertMessage = "服务器出现错误：\n" + xhr.responseText;
+                const alertMessage = "服务器出现错误：\n" + xhr.responseText;
                 alert(alertMessage);
 
                 return;
@@ -109,21 +109,21 @@ function verifySMSCode() {
 }
 
 function getCurrentLogin() {
-    let xhr = new XMLHttpRequest();
+    const xhr = new XMLHttpRequest();
     xhr.open("GET", "/api/GetLoginInfo", true);
     xhr.send();
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
-            let responseText = xhr.responseText;
+            const responseText = xhr.responseText;
             if (xhr.status !== 200) {
-                let alertMessage = "服务器出现错误：\n" + responseText;
+                const alertMessage = "服务器出现错误：\n" + responseText;
                 alert(alertMessage);
                 return;
             }
 
             if (responseText) {
-                let responseJson = JSON.parse(responseText);
+                const responseJson = JSON.parse(responseText);
                 document.getElementById("current_phone_number").value = responseJson["phoneNumber"];
             }
         }
@@ -131,12 +131,12 @@ function getCurrentLogin() {
 }
 
 function updateNotificationKeys() {
-    let serverChanSendKey = document.getElementById("server_chan_send_key").value;
-    let barkToken = document.getElementById("bark_token").value;
-    let dingTalkAccessToken = document.getElementById('dingtalk_token').value;
-    let dingTalkSecret = document.getElementById('dingtalk_secret').value;
+    const serverChanSendKey = document.getElementById("server_chan_send_key").value;
+    const barkToken = document.getElementById("bark_token").value;
+    const dingTalkAccessToken = document.getElementById('dingtalk_token').value;
+    const dingTalkSecret = document.getElementById('dingtalk_secret').value;
 
-    let xhr = new XMLHttpRequest();
+    const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/UpdateNotificationChannels", true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.send(JSON.stringify({
@@ -151,7 +151,7 @@ function updateNotificationKeys() {
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
             if (xhr.status !== 200) {
-                let alertMessage = "服务器出现错误：\n" + xhr.responseText;
+                const alertMessage = "服务器出现错误：\n" + xhr.responseText;
                 alert(alertMessage);
                 return;
             }
@@ -162,34 +162,34 @@ function updateNotificationKeys() {
 }
 
 function testNotificationKeys() {
-    var xhr = new XMLHttpRequest();
+    const xhr = new XMLHttpRequest();
     xhr.open("GET", "/api/TestNotificationChannels", true);
     xhr.send();
 }
 
 function loadNotificationKeys() {
-    let xhr = new XMLHttpRequest();
+    const xhr = new XMLHttpRequest();
     xhr.open("GET", "/api/GetNotificationKeys", true);
     xhr.send();
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
-            let responseText = xhr.responseText;
+            const responseText = xhr.responseText;
             if (xhr.status !== 200) {
-                let alertMessage = "服务器出现错误：\n" + responseText;
+                const alertMessage = "服务器出现错误：\n" + responseText;
                 alert(alertMessage);
                 return;
             }
 
             if (responseText) {
-                let responseJson = JSON.parse(responseText);
+                const responseJson = JSON.parse(responseText);
 
-                let serverChanSendKey = responseJson["serverChan"];
-                let barkToken = responseJson["bark"];
+                const serverChanSendKey = responseJson["serverChan"];
+                const barkToken = responseJson["bark"];
 
-                let dingTalk = responseJson["dingTalk"];
-                let dingTalkAccessToken = dingTalk ? dingTalk["accessToken"] : "";
-                let dingTalkSecret = dingTalk ? dingTalk["secret"] : "";
+                const dingTalk = responseJson["dingTalk"];
+                const dingTalkAccessToken = dingTalk ? dingTalk["accessToken"] : "";
+                const dingTalkSecret = dingTalk ? dingTalk["secret"] : "";
 
                 document.getElementById("server_chan_send_key").value = serverChanSendKey;
                 document.getElementById("bark_token").value = barkToken;
@@ -198,6 +198,30 @@ function loadNotificationKeys() {
             }
         }
     }
+}
+
+function manualSignin() {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/Signin", true);
+    xhr.send();
+}
+
+function manualHarvest() {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/Harvest", true);
+    xhr.send();
+}
+
+function manualCheckAndApplyElectricBillBonus() {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/CheckAndApplyElectricBillBonus", true);
+    xhr.send();
+}
+
+function manualRefreshLogin() {
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/RefreshLogin", true);
+    xhr.send();
 }
 
 window.onload = function () {

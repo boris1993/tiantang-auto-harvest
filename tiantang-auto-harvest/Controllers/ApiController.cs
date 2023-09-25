@@ -14,18 +14,23 @@ namespace tiantang_auto_harvest.Controllers
     {
         private readonly ILogger<ApiController> _logger;
         private readonly AppService _appService;
+        private readonly TiantangService _tiantangService;
 
-        public ApiController(ILogger<ApiController> logger, AppService appService)
+        public ApiController(
+            ILogger<ApiController> logger, 
+            AppService appService, 
+            TiantangService tiantangService)
         {
             _logger = logger;
             _appService = appService;
+            _tiantangService = tiantangService;
         }
 
         [HttpGet]
         public async Task<ActionResult> GetCaptchaImage()
         {
             var (captchaId, captchaUrl) = await _appService.GetCaptchaImage();
-            
+
             _logger.LogInformation("CaptchaId是{CaptchaId}", captchaId);
             return new ObjectResult(new {captchaId, captchaUrl});
         }
@@ -34,24 +39,24 @@ namespace tiantang_auto_harvest.Controllers
         public async Task<ActionResult> SendSms(SendSMSRequest sendSmsRequest)
         {
             await _appService.RetrieveSMSCode(
-                sendSmsRequest.PhoneNumber, 
+                sendSmsRequest.PhoneNumber,
                 sendSmsRequest.captchaId,
                 sendSmsRequest.captchaCode);
-            return new EmptyResult();
+            return new OkResult();
         }
 
         [HttpPost]
         public async Task<ActionResult> ManuallyRefreshLogin()
         {
             await _appService.RefreshLogin();
-            return new EmptyResult();
+            return new OkResult();
         }
 
         [HttpPost]
         public async Task<ActionResult> VerifyCode(VerifyCodeRequest verifyCodeRequest)
         {
             await _appService.VerifySMSCode(verifyCodeRequest.PhoneNumber, verifyCodeRequest.OTPCode);
-            return new EmptyResult();
+            return new OkResult();
         }
 
         [HttpGet]
@@ -81,20 +86,45 @@ namespace tiantang_auto_harvest.Controllers
         public ActionResult UpdateNotificationChannels(SetNotificationChannelRequest setNotificationChannelRequest)
         {
             _appService.UpdateNotificationKeys(setNotificationChannelRequest);
-            return new EmptyResult();
+            return new OkResult();
         }
 
         [HttpGet]
         public async Task<ActionResult> TestNotificationChannels()
         {
             await _appService.TestNotificationChannels();
-            return new EmptyResult();
+            return new OkResult();
         }
 
         [HttpGet]
-        public ActionResult GetNotificationKeys()
+        public ActionResult GetNotificationKeys() => new JsonResult(_appService.GetNotificationKeys());
+
+        [HttpPost]
+        public async Task<ActionResult> Signin()
         {
-            return new JsonResult(_appService.GetNotificationKeys());
+            await _tiantangService.Signin();
+            return new OkResult();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Harvest()
+        {
+            await _tiantangService.Harvest();
+            return new OkResult();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> CheckAndApplyElectricBillBonus()
+        {
+            await _tiantangService.CheckAndApplyElectricBillBonus();
+            return new OkResult();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> RefreshLogin()
+        {
+            await _tiantangService.RefreshLogin();
+            return new OkResult();
         }
     }
 }
