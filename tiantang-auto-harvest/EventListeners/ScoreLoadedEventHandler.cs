@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using tiantang_auto_harvest.Jobs;
 using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Service;
 
@@ -15,20 +13,17 @@ namespace tiantang_auto_harvest.EventListeners
     {
         private readonly ILogger<ScoreLoadedEventHandler> logger;
         private readonly IServiceProvider serviceProvider;
-        private readonly TiantangRemoteCallService tiantangRemoteCallService;
 
         public ScoreLoadedEventHandler(
             ILogger<ScoreLoadedEventHandler> logger,
-            IServiceProvider serviceProvider,
-            TiantangRemoteCallService tiantangRemoteCallService
+            IServiceProvider serviceProvider
         )
         {
             this.logger = logger;
             this.serviceProvider = serviceProvider;
-            this.tiantangRemoteCallService = tiantangRemoteCallService;
         }
 
-        public async Task HandleScoresLoadedEvent(object sender, EventArgs eventArgs)
+        public async Task HandleScoresLoadedEvent(object _, EventArgs eventArgs)
         {
             if (eventArgs.GetType() != typeof(TiantangScoresEventArgs))
             {
@@ -37,23 +32,7 @@ namespace tiantang_auto_harvest.EventListeners
             }
 
             var tiantangScores = (TiantangScoresEventArgs)eventArgs;
-            var accessToken = tiantangScores.AccessToken;
-
-            var promoteScore = tiantangScores.PromotionScore;
-            if (promoteScore <= 0)
-            {
-                logger.LogInformation("无可收取的推广星愿");
-            }
-            else
-            {
-                logger.LogInformation($"正在收取{tiantangScores.PromotionScore}点推广星愿");
-                await tiantangRemoteCallService.HarvestPromotionScore(tiantangScores.PromotionScore, tiantangScores.AccessToken);
-            }
-
-            var deviceScores = tiantangScores.DeviceScores;
-            await tiantangRemoteCallService.HarvestDeviceScore(deviceScores, accessToken);
-
-            var totalDeviceScores = deviceScores.Select(e => e.Value).Sum();
+            var totalDeviceScores = tiantangScores.DeviceScores.Select(e => e.Value).Sum();
 
             using var scope = serviceProvider.CreateScope();
             var notificationRemoteCallService = scope.ServiceProvider.GetService<NotificationRemoteCallService>();
@@ -61,24 +40,6 @@ namespace tiantang_auto_harvest.EventListeners
                 new NotificationBody(
                     $"今日已收取{tiantangScores.PromotionScore + totalDeviceScores}点星愿\n" +
                     $"包括{tiantangScores.PromotionScore}点推广星愿，和{totalDeviceScores}点设备星愿"));
-        }
-    }
-
-    public static class ScoreLoadedEventHandlerExtensions
-    {
-        public static void UseScoreLoadedEventHandler(this IApplicationBuilder app)
-        {
-            var serviceProvider = app.ApplicationServices;
-            var harvestJob = serviceProvider.GetService<HarvestJob>();
-
-            // 监听星愿检查完成事件
-            async void OnScoresLoadedEventHandler(object sender, EventArgs args)
-            {
-                var handler = serviceProvider.GetService<ScoreLoadedEventHandler>();
-                await handler!.HandleScoresLoadedEvent(sender, args);
-            }
-
-            harvestJob!.ScoresLoadedEventHandler += OnScoresLoadedEventHandler;
         }
     }
 

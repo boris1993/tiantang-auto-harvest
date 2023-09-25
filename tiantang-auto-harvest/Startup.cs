@@ -147,8 +147,6 @@ namespace tiantang_auto_harvest
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
-
-            app.UseScoreLoadedEventHandler();
         }
 
         private void ConfigureHttpClientDefaults(HttpClient client)
