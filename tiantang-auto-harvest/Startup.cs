@@ -53,10 +53,10 @@ namespace tiantang_auto_harvest
             services.AddSingleton<ScoreLoadedEventHandler>();
             services.AddHttpClient<AppService>(ConfigureHttpClientDefaults)
                 .SetHandlerLifetime(TimeSpan.FromMinutes(5))
-                .AddPolicyHandler(GetRetryPolicy());
+                .AddPolicyHandler(GetRetryPolicy);
             services.AddHttpClient<TiantangRemoteCallService>(ConfigureHttpClientDefaults)
                 .SetHandlerLifetime(TimeSpan.FromMinutes(5))
-                .AddPolicyHandler(GetRetryPolicy());
+                .AddPolicyHandler(GetRetryPolicy);
 
             services.AddDataProtection()
                 .PersistKeysToDbContext<DefaultDbContext>()
@@ -65,7 +65,7 @@ namespace tiantang_auto_harvest
                     EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
                     ValidationAlgorithm = ValidationAlgorithm.HMACSHA256,
                 });
-            
+
             services.AddLogging(builder =>
             {
                 builder.AddSimpleConsole(options =>
@@ -159,16 +159,15 @@ namespace tiantang_auto_harvest
             client.DefaultRequestHeaders.Add(HttpRequestHeader.AcceptEncoding.ToString(), TiantangBackendURLs.AcceptEncoding);
         }
 
-        private IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
-        {
-            return HttpPolicyExtensions
+        private IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider serviceProvider, HttpRequestMessage request) =>
+            HttpPolicyExtensions
                 .HandleTransientHttpError()
-                .WaitAndRetryAsync(3, 
+                .WaitAndRetryAsync(3,
                     retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                    (exception, TimeSpan, retryCount) =>
+                    (response, delay, retryCount, context) =>
                     {
-                        _logger.LogWarning($"发生{exception.Exception.Message}异常，进行第{retryCount}次重试");
+                        var url = request.RequestUri;
+                        _logger.LogWarning($"访问{url}时发生{response.Exception.InnerException.Message}异常，将在{delay.Seconds}后进行第{retryCount}次重试");
                     });
-        }
     }
 }
