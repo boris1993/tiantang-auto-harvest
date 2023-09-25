@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using tiantang_auto_harvest.Constants;
 using tiantang_auto_harvest.EventListeners;
 using tiantang_auto_harvest.Exceptions;
+using tiantang_auto_harvest.Extensions;
 using tiantang_auto_harvest.Models;
 
 namespace tiantang_auto_harvest.Service
@@ -221,6 +223,41 @@ namespace tiantang_auto_harvest.Service
             cancellationToken = CancellationTokenHelper.GetCancellationToken();
             await _tiantangRemoteCallService.ActiveElectricBillBonusCard(accessToken, cancellationToken);
             #endregion
+        }
+        
+        public async Task RefreshLogin()
+        {
+            var cancellationToken = CancellationTokenHelper.GetCancellationToken();
+            var tiantangLoginInfo = await _dbContext.TiantangLoginInfo.SingleOrDefaultAsync(cancellationToken);
+            if (tiantangLoginInfo == null)
+            {
+                _logger.LogInformation("未登录甜糖账号，跳过收取星愿");
+                return;
+            }
+            
+            var accessToken = tiantangLoginInfo.AccessToken;
+            var tokenBody = accessToken.Split('.')[1].PaddingBase64String();
+            var decodedToken = Encoding.UTF8.GetString(Convert.FromBase64String(tokenBody));
+            var jsonTokenBody = JsonDocument.Parse(decodedToken);
+            var expireTime = DateTimeOffset.FromUnixTimeSeconds(jsonTokenBody.RootElement.GetProperty("exp").GetInt32());
+            var currentDate = DateTime.Now;
+
+            if ((expireTime - currentDate).TotalHours > 24)
+            {
+                _logger.LogInformation("Token有效期大于24小时，跳过刷新");
+                return;
+            }
+
+            _logger.LogInformation("Token有效期不足24小时，将刷新登录");
+
+            var unionId = tiantangLoginInfo.UnionId;
+            var responseJson = await _tiantangRemoteCallService.RefreshLogin(unionId, cancellationToken);
+            var newToken = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
+            tiantangLoginInfo.AccessToken = newToken;
+
+            _logger.LogInformation("新token为 {NewToken}", newToken);
+            
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

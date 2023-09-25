@@ -19,8 +19,6 @@ namespace tiantang_auto_harvest.Models
                 .HasIndex(entity => entity.PhoneNumber)
                 .IsUnique();
         }
-
-        
     }
 
     public class TiantangLoginInfo
