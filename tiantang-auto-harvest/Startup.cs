@@ -53,10 +53,8 @@ namespace tiantang_auto_harvest
             services.AddSingleton<TiantangRemoteCallService>();
             services.AddSingleton<ScoreLoadedEventHandler>();
             services.AddHttpClient<AppService>(ConfigureHttpClientDefaults)
-                .SetHandlerLifetime(TimeSpan.FromMinutes(5))
                 .AddPolicyHandler(GetRetryPolicy);
             services.AddHttpClient<TiantangRemoteCallService>(ConfigureHttpClientDefaults)
-                .SetHandlerLifetime(TimeSpan.FromMinutes(5))
                 .AddPolicyHandler(GetRetryPolicy);
 
             services.AddDataProtection()
@@ -161,9 +159,9 @@ namespace tiantang_auto_harvest
         private IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider serviceProvider, HttpRequestMessage request) =>
             HttpPolicyExtensions
                 .HandleTransientHttpError()
-                .WaitAndRetryAsync(3,
-                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                    (response, delay, retryCount, context) =>
+                .WaitAndRetryAsync(5,
+                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(5, retryAttempt)),
+                    (response, delay, retryCount, _) =>
                     {
                         var url = request.RequestUri;
                         var errorMessage = response.Exception.InnerException != null ? response.Exception.InnerException.Message : response.Exception.Message;
