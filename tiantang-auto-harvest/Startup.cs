@@ -167,7 +167,7 @@ namespace tiantang_auto_harvest
                     {
                         var url = request.RequestUri;
                         var errorMessage = response.Exception.InnerException != null ? response.Exception.InnerException.Message : response.Exception.Message;
-                        _logger.LogWarning($"访问{url}时发生{errorMessage}异常，将在{delay.Seconds}后进行第{retryCount}次重试");
+                        _logger.LogWarning($"访问 {url} 时发生 {errorMessage} 异常，将在{delay.Seconds}秒后进行第{retryCount}次重试");
                     });
     }
 }
