@@ -29,6 +29,7 @@ namespace tiantang_auto_harvest.Jobs
                 return;
             }
 
+            _logger.LogInformation("将执行收取星愿定时任务");
             await tiantangService.Harvest();
         }
     }

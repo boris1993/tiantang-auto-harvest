@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -141,14 +140,13 @@ namespace tiantang_auto_harvest.Service
                 return;
             }
 
+            var cancellationToken = CancellationTokenHelper.GetCancellationToken();
             var accessToken = tiantangLoginInfo.AccessToken;
-
-            CancellationToken cancellationToken;
             
+            _logger.LogInformation("正在检查是否有已启用的加成卡");
             JsonDocument activatedBonusCardResponse;
             try
             {
-                cancellationToken = CancellationTokenHelper.GetCancellationToken();
                 activatedBonusCardResponse = await _tiantangRemoteCallService.RetrieveActivatedBonusCards(accessToken, cancellationToken);
             }
             catch (ExternalApiCallException)
@@ -157,10 +155,10 @@ namespace tiantang_auto_harvest.Service
                 return;
             }
 
+            _logger.LogInformation("正在获取全部加成卡");
             JsonDocument allBonusCardsResponse;
             try
             {
-                cancellationToken = CancellationTokenHelper.GetCancellationToken();
                 allBonusCardsResponse = await _tiantangRemoteCallService.RetrieveAllBonusCards(accessToken, cancellationToken);
             }
             catch (ExternalApiCallException)
@@ -220,7 +218,6 @@ namespace tiantang_auto_harvest.Service
 
             _logger.LogInformation("正在激活电费卡");
             
-            cancellationToken = CancellationTokenHelper.GetCancellationToken();
             await _tiantangRemoteCallService.ActiveElectricBillBonusCard(accessToken, cancellationToken);
             #endregion
         }
