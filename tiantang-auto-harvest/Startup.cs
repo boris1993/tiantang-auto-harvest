@@ -160,7 +160,7 @@ namespace tiantang_auto_harvest
             HttpPolicyExtensions
                 .HandleTransientHttpError()
                 .WaitAndRetryAsync(5,
-                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(5, retryAttempt)),
+                    retryAttempt => TimeSpan.FromSeconds(5 * retryAttempt),
                     (response, delay, retryCount, _) =>
                     {
                         var url = request.RequestUri;
