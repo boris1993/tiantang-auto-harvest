@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;
@@ -30,12 +29,10 @@ namespace tiantang_auto_harvest
 {
     public class Startup
     {
-        private IConfiguration Configuration { get; }
         private ILogger<Startup> _logger;
 
-        public Startup(IConfiguration configuration)
+        public Startup()
         {
-            Configuration = configuration;
             // Create the folder for storing the data
             Directory.CreateDirectory($"{AppContext.BaseDirectory}/data");
         }
@@ -175,7 +172,11 @@ namespace tiantang_auto_harvest
                             errorMessage = response.Result.ReasonPhrase;
                         }
                         
-                        _logger.LogWarning($"访问 {url} 时发生 {errorMessage} 异常，将在{delay.Seconds}秒后进行第{retryCount}次重试");
+                        _logger.LogWarning("访问 {Url} 时发生 {ErrorMessage} 异常，将在{DelaySeconds}秒后进行第{RetryCount}次重试", 
+                            url, 
+                            errorMessage,
+                            delay.Seconds,
+                            retryCount);
                     });
     }
 }
