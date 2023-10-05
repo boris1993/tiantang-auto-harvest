@@ -29,7 +29,7 @@ namespace tiantang_auto_harvest.Jobs
             }
 
             _logger.LogInformation("将执行刷新token定时任务");
-            await tiantangService.RefreshLogin();
+            await tiantangService.RefreshLogin(CancellationTokenHelper.GetCancellationToken());
         }
     }
 }

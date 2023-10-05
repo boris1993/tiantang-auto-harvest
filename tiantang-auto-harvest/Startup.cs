@@ -164,7 +164,17 @@ namespace tiantang_auto_harvest
                     (response, delay, retryCount, _) =>
                     {
                         var url = request.RequestUri;
-                        var errorMessage = response.Exception.InnerException != null ? response.Exception.InnerException.Message : response.Exception.Message;
+
+                        string errorMessage;
+                        if (response.Exception != null)
+                        {
+                            errorMessage = response.Exception.InnerException != null ? response.Exception.InnerException.Message : response.Exception.Message;
+                        }
+                        else
+                        {
+                            errorMessage = response.Result.ReasonPhrase;
+                        }
+                        
                         _logger.LogWarning($"访问 {url} 时发生 {errorMessage} 异常，将在{delay.Seconds}秒后进行第{retryCount}次重试");
                     });
     }
