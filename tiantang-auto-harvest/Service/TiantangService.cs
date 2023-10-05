@@ -156,6 +156,7 @@ namespace tiantang_auto_harvest.Service
             }
 
             _logger.LogInformation("正在获取全部加成卡");
+            cancellationToken = CancellationTokenHelper.GetCancellationToken();
             JsonDocument allBonusCardsResponse;
             try
             {
@@ -218,6 +219,7 @@ namespace tiantang_auto_harvest.Service
 
             _logger.LogInformation("正在激活电费卡");
             
+            cancellationToken = CancellationTokenHelper.GetCancellationToken();
             await _tiantangRemoteCallService.ActiveElectricBillBonusCard(accessToken, cancellationToken);
             #endregion
         }
@@ -247,6 +249,7 @@ namespace tiantang_auto_harvest.Service
 
             _logger.LogInformation("Token有效期不足24小时，将刷新登录");
 
+            cancellationToken = CancellationTokenHelper.GetCancellationToken();
             var unionId = tiantangLoginInfo.UnionId;
             var responseJson = await _tiantangRemoteCallService.RefreshLogin(unionId, cancellationToken);
             var newToken = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
@@ -254,6 +257,7 @@ namespace tiantang_auto_harvest.Service
 
             _logger.LogInformation("新token为 {NewToken}", newToken);
             
+            cancellationToken = CancellationTokenHelper.GetCancellationToken();
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
