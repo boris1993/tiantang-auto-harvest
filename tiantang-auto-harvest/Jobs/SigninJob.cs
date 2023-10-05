@@ -30,7 +30,7 @@ namespace tiantang_auto_harvest.Jobs
             }
             
             _logger.LogInformation("将执行签到定时任务");
-            await tiantangService.Signin(CancellationTokenHelper.GetCancellationToken());
+            await tiantangService.Signin();
         }
     }
 }
