@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -38,7 +37,7 @@ namespace tiantang_auto_harvest.Service
             };
         }
 
-        public async Task Signin(CancellationToken cancellationToken = default)
+        public async Task Signin()
         {
             var tiantangLoginInfo = await _dbContext.TiantangLoginInfo.SingleOrDefaultAsync();
             if (tiantangLoginInfo == null)
@@ -52,7 +51,7 @@ namespace tiantang_auto_harvest.Service
             JsonDocument responseJson;
             try
             {
-                responseJson = await _tiantangRemoteCallService.DailyCheckIn(tiantangLoginInfo.AccessToken, cancellationToken);
+                responseJson = await _tiantangRemoteCallService.DailyCheckIn(tiantangLoginInfo.AccessToken);
             }
             catch (ExternalApiCallException)
             {
@@ -64,7 +63,7 @@ namespace tiantang_auto_harvest.Service
             _logger.LogInformation($"签到成功，获得{earnedScore}点星愿");
         }
 
-        public async Task Harvest(CancellationToken cancellationToken = default)
+        public async Task Harvest()
         {
             var tiantangLoginInfo = await _dbContext.TiantangLoginInfo.SingleOrDefaultAsync();
             if (tiantangLoginInfo == null)
@@ -82,7 +81,7 @@ namespace tiantang_auto_harvest.Service
             JsonDocument responseJson;
             try
             {
-                responseJson = await _tiantangRemoteCallService.RetrieveUserInfo(tiantangLoginInfo.AccessToken, cancellationToken);
+                responseJson = await _tiantangRemoteCallService.RetrieveUserInfo(tiantangLoginInfo.AccessToken);
             }
             catch (ExternalApiCallException)
             {
@@ -130,9 +129,9 @@ namespace tiantang_auto_harvest.Service
             _scoresLoadedEventHandler?.Invoke(this, tiantangScores);
         }
 
-        public async Task CheckAndApplyElectricBillBonus(CancellationToken cancellationToken = default)
+        public async Task CheckAndApplyElectricBillBonus()
         {
-            var tiantangLoginInfo = await _dbContext.TiantangLoginInfo.SingleOrDefaultAsync(cancellationToken);
+            var tiantangLoginInfo = await _dbContext.TiantangLoginInfo.SingleOrDefaultAsync();
             if (tiantangLoginInfo == null)
             {
                 _logger.LogInformation("未登录甜糖账号，跳过收取星愿");
@@ -145,7 +144,7 @@ namespace tiantang_auto_harvest.Service
             JsonDocument activatedBonusCardResponse;
             try
             {
-                activatedBonusCardResponse = await _tiantangRemoteCallService.RetrieveActivatedBonusCards(accessToken, cancellationToken);
+                activatedBonusCardResponse = await _tiantangRemoteCallService.RetrieveActivatedBonusCards(accessToken);
             }
             catch (ExternalApiCallException)
             {
@@ -157,7 +156,7 @@ namespace tiantang_auto_harvest.Service
             JsonDocument allBonusCardsResponse;
             try
             {
-                allBonusCardsResponse = await _tiantangRemoteCallService.RetrieveAllBonusCards(accessToken, cancellationToken);
+                allBonusCardsResponse = await _tiantangRemoteCallService.RetrieveAllBonusCards(accessToken);
             }
             catch (ExternalApiCallException)
             {
@@ -216,13 +215,13 @@ namespace tiantang_auto_harvest.Service
 
             _logger.LogInformation("正在激活电费卡");
             
-            await _tiantangRemoteCallService.ActiveElectricBillBonusCard(accessToken, cancellationToken);
+            await _tiantangRemoteCallService.ActiveElectricBillBonusCard(accessToken);
             #endregion
         }
         
-        public async Task RefreshLogin(CancellationToken cancellationToken = default)
+        public async Task RefreshLogin()
         {
-            var tiantangLoginInfo = await _dbContext.TiantangLoginInfo.SingleOrDefaultAsync(cancellationToken);
+            var tiantangLoginInfo = await _dbContext.TiantangLoginInfo.SingleOrDefaultAsync();
             if (tiantangLoginInfo == null)
             {
                 _logger.LogInformation("未登录甜糖账号，跳过收取星愿");
@@ -245,13 +244,13 @@ namespace tiantang_auto_harvest.Service
             _logger.LogInformation("Token有效期不足24小时，将刷新登录");
 
             var unionId = tiantangLoginInfo.UnionId;
-            var responseJson = await _tiantangRemoteCallService.RefreshLogin(unionId, cancellationToken);
+            var responseJson = await _tiantangRemoteCallService.RefreshLogin(unionId);
             var newToken = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
             tiantangLoginInfo.AccessToken = newToken;
 
             _logger.LogInformation("新token为 {NewToken}", newToken);
             
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

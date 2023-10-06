@@ -12,20 +12,16 @@ namespace tiantang_auto_harvest
     public class QuartzJobFactory : IJobFactory
     {
         private readonly IServiceProvider _serviceProvider;
+
         public QuartzJobFactory(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }
 
-        public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler)
-        {
-            return _serviceProvider.GetRequiredService(bundle.JobDetail.JobType) as IJob;
-        }
+        public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler) =>
+            _serviceProvider.GetRequiredService(bundle.JobDetail.JobType) as IJob;
 
-        public void ReturnJob(IJob job)
-        {
-
-        }
+        public void ReturnJob(IJob job) { }
     }
 
     public class JobSchedule
@@ -33,6 +29,7 @@ namespace tiantang_auto_harvest
 
         public Type JobType { get; }
         public string CronExpression { get; }
+
         public JobSchedule(Type jobType, string cronExpression)
         {
             JobType = jobType;
@@ -55,7 +52,8 @@ namespace tiantang_auto_harvest
             _jobSchedules = jobSchedules;
             _jobFactory = jobFactory;
         }
-        public IScheduler Scheduler { get; set; }
+
+        private IScheduler Scheduler { get; set; }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
@@ -88,14 +86,12 @@ namespace tiantang_auto_harvest
                 .Build();
         }
 
-        private static ITrigger CreateTrigger(JobSchedule schedule)
-        {
-            return TriggerBuilder
+        private static ITrigger CreateTrigger(JobSchedule schedule) =>
+            TriggerBuilder
                 .Create()
                 .WithIdentity($"{schedule.JobType.FullName}.trigger")
                 .WithCronSchedule(schedule.CronExpression)
                 .WithDescription(schedule.CronExpression)
                 .Build();
-        }
     }
 }
