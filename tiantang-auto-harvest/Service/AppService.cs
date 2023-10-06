@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -101,8 +102,13 @@ namespace tiantang_auto_harvest.Service
             await _defaultDbContext.SaveChangesAsync();
         }
 
-        public async Task RefreshLogin()
+        public async Task RefreshLogin(CancellationToken cancellationToken)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                throw new TaskCanceledException("RefreshLogin被cancel", null, cancellationToken);
+            }
+            
             var tiantangLoginInfo = _defaultDbContext.TiantangLoginInfo.SingleOrDefault();
             if (tiantangLoginInfo == null)
             {
@@ -112,13 +118,13 @@ namespace tiantang_auto_harvest.Service
             _logger.LogInformation("正在刷新{PhoneNumber}的token", tiantangLoginInfo.PhoneNumber);
 
             var unionId = tiantangLoginInfo.UnionId;
-            var responseJson = await _tiantangRemoteCallService.RefreshLogin(unionId);
+            var responseJson = await _tiantangRemoteCallService.RefreshLogin(unionId, cancellationToken);
 
             var newToken = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
             tiantangLoginInfo.AccessToken = newToken;
             _logger.LogInformation("新token是 {NewToken}", newToken);
 
-            _defaultDbContext.SaveChanges();
+            await _defaultDbContext.SaveChangesAsync(cancellationToken);
         }
 
         public void UpdateNotificationKeys(SetNotificationChannelRequest setNotificationChannelRequest)
@@ -183,10 +189,11 @@ namespace tiantang_auto_harvest.Service
         {
             string responseBody;
             JsonDocument responseJson;
-            int errCode;
             string errorMessage;
             
             var statusCode = response.StatusCode;
+            
+            // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
             switch (statusCode)
             {
                 case HttpStatusCode.BadGateway:
@@ -195,7 +202,7 @@ namespace tiantang_auto_harvest.Service
                 case HttpStatusCode.OK:
                     responseBody = response.Content.ReadAsStringAsync().Result;
                     responseJson = JsonDocument.Parse(responseBody);
-                    errCode = responseJson.RootElement.GetProperty("errCode").GetInt32();
+                    var errCode = responseJson.RootElement.GetProperty("errCode").GetInt32();
                     errorMessage = responseJson.RootElement.GetProperty("msg").GetString();
                     
                     if (errCode != 0)

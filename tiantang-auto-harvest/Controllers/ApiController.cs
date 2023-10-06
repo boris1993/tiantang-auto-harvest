@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using tiantang_auto_harvest.Models;
 using tiantang_auto_harvest.Models.Requests;
 using tiantang_auto_harvest.Models.Responses;
 using tiantang_auto_harvest.Service;
@@ -46,9 +46,9 @@ namespace tiantang_auto_harvest.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> ManuallyRefreshLogin()
+        public async Task<ActionResult> ManuallyRefreshLogin(CancellationToken cancellationToken)
         {
-            await _appService.RefreshLogin();
+            await _appService.RefreshLogin(cancellationToken);
             return new OkResult();
         }
 
@@ -62,22 +62,17 @@ namespace tiantang_auto_harvest.Controllers
         [HttpGet]
         public ActionResult GetLoginInfo(bool showToken = false)
         {
-            TiantangLoginInfo tiantangLoginInfo = _appService.GetCurrentLoginInfo();
+            var tiantangLoginInfo = _appService.GetCurrentLoginInfo();
             if (tiantangLoginInfo == null)
             {
                 return new EmptyResult();
             }
 
-            LoginInfoResponse response = new LoginInfoResponse();
-            response.PhoneNumber = tiantangLoginInfo.PhoneNumber;
-            if (showToken)
+            var response = new LoginInfoResponse
             {
-                response.Token = tiantangLoginInfo.AccessToken;
-            }
-            else
-            {
-                response.Token = "MASKED";
-            }
+                PhoneNumber = tiantangLoginInfo.PhoneNumber,
+                Token = showToken ? tiantangLoginInfo.AccessToken : "MASKED",
+            };
 
             return new JsonResult(response);
         }
@@ -100,30 +95,30 @@ namespace tiantang_auto_harvest.Controllers
         public ActionResult GetNotificationKeys() => new JsonResult(_appService.GetNotificationKeys());
 
         [HttpPost]
-        public async Task<ActionResult> Signin()
+        public async Task<ActionResult> Signin(CancellationToken cancellationToken)
         {
-            await _tiantangService.Signin();
+            await _tiantangService.Signin(cancellationToken);
             return new OkResult();
         }
 
         [HttpPost]
-        public async Task<ActionResult> Harvest()
+        public async Task<ActionResult> Harvest(CancellationToken cancellationToken)
         {
-            await _tiantangService.Harvest();
+            await _tiantangService.Harvest(cancellationToken);
             return new OkResult();
         }
 
         [HttpPost]
-        public async Task<ActionResult> CheckAndApplyElectricBillBonus()
+        public async Task<ActionResult> CheckAndApplyElectricBillBonus(CancellationToken cancellationToken)
         {
-            await _tiantangService.CheckAndApplyElectricBillBonus();
+            await _tiantangService.CheckAndApplyElectricBillBonus(cancellationToken);
             return new OkResult();
         }
 
         [HttpPost]
-        public async Task<ActionResult> RefreshLogin()
+        public async Task<ActionResult> RefreshLogin(CancellationToken cancellationToken)
         {
-            await _tiantangService.RefreshLogin();
+            await _tiantangService.RefreshLogin(cancellationToken);
             return new OkResult();
         }
     }

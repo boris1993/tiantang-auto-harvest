@@ -10,10 +10,10 @@ namespace tiantang_auto_harvest.Jobs
     [DisallowConcurrentExecution]
     public class HarvestJob : IJob
     {
-        private readonly ILogger<SigninJob> _logger;
+        private readonly ILogger<HarvestJob> _logger;
         private readonly IServiceProvider _serviceProvider;
         
-        public HarvestJob(ILogger<SigninJob> logger, IServiceProvider serviceProvider)
+        public HarvestJob(ILogger<HarvestJob> logger, IServiceProvider serviceProvider)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
@@ -30,7 +30,7 @@ namespace tiantang_auto_harvest.Jobs
             }
 
             _logger.LogInformation("将执行收取星愿定时任务");
-            await tiantangService.Harvest();
+            await tiantangService.Harvest(context.CancellationToken);
         }
     }
 }

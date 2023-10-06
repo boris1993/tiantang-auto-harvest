@@ -10,10 +10,10 @@ namespace tiantang_auto_harvest.Jobs
     [DisallowConcurrentExecution]
     public class ApplyBonusCardsJob : IJob
     {
-        private readonly ILogger<SigninJob> _logger;
+        private readonly ILogger<ApplyBonusCardsJob> _logger;
         private readonly IServiceProvider serviceProvider;
         
-        public ApplyBonusCardsJob(ILogger<SigninJob> logger, IServiceProvider serviceProvider)
+        public ApplyBonusCardsJob(ILogger<ApplyBonusCardsJob> logger, IServiceProvider serviceProvider)
         {
             _logger = logger;
             this.serviceProvider = serviceProvider;
@@ -30,7 +30,7 @@ namespace tiantang_auto_harvest.Jobs
             }
             
             _logger.LogInformation("将执行激活电费卡定时任务");
-            await tiantangService.CheckAndApplyElectricBillBonus();
+            await tiantangService.CheckAndApplyElectricBillBonus(context.CancellationToken);
         }
     }
 }

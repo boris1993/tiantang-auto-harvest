@@ -9,10 +9,10 @@ namespace tiantang_auto_harvest.Jobs
 {
     public class RefreshLoginJob : IJob
     {
-        private readonly ILogger<SigninJob> _logger;
+        private readonly ILogger<RefreshLoginJob> _logger;
         private readonly IServiceProvider _serviceProvider;
 
-        public RefreshLoginJob(ILogger<SigninJob> logger, IServiceProvider serviceProvider)
+        public RefreshLoginJob(ILogger<RefreshLoginJob> logger, IServiceProvider serviceProvider)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
@@ -29,7 +29,7 @@ namespace tiantang_auto_harvest.Jobs
             }
 
             _logger.LogInformation("将执行刷新token定时任务");
-            await tiantangService.RefreshLogin();
+            await tiantangService.RefreshLogin(context.CancellationToken);
         }
     }
 }
