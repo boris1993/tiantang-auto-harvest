@@ -167,9 +167,14 @@ namespace tiantang_auto_harvest
                         {
                             errorMessage = response.Exception.InnerException != null ? response.Exception.InnerException.Message : response.Exception.Message;
                         }
-                        else
+                        else if (response.Result.ReasonPhrase != null)
                         {
                             errorMessage = response.Result.ReasonPhrase;
+                        }
+                        else
+                        {
+                            errorMessage = "未知";
+                            _logger.LogWarning("Response = {}", response);
                         }
                         
                         _logger.LogWarning("访问 {Url} 时发生 {ErrorMessage} 异常，将在{DelaySeconds}秒后进行第{RetryCount}次重试", 
