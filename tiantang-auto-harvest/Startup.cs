@@ -83,10 +83,10 @@ namespace tiantang_auto_harvest
                 jobType: typeof(SigninJob),
                 cronExpression: "0 0 3 * * ?"
             ));
-            // 每日10:00收取星愿
+            // 每日09:00收取星愿
             services.AddSingleton(new JobSchedule(
                 jobType: typeof(HarvestJob),
-                cronExpression: "0 0 10 * * ?"
+                cronExpression: "0 0 9 * * ?"
             ));
             // 每日10:00检查并激活电费卡
             services.AddSingleton(new JobSchedule(
