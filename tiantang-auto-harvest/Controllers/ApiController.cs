@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using tiantang_auto_harvest.Models.Requests;
@@ -46,9 +45,9 @@ namespace tiantang_auto_harvest.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> ManuallyRefreshLogin(CancellationToken cancellationToken)
+        public async Task<ActionResult> ManuallyRefreshLogin()
         {
-            await _appService.RefreshLogin(cancellationToken);
+            await _appService.RefreshLogin();
             return new OkResult();
         }
 
@@ -95,30 +94,30 @@ namespace tiantang_auto_harvest.Controllers
         public ActionResult GetNotificationKeys() => new JsonResult(_appService.GetNotificationKeys());
 
         [HttpPost]
-        public async Task<ActionResult> Signin(CancellationToken cancellationToken)
+        public async Task<ActionResult> Signin()
         {
-            await _tiantangService.Signin(cancellationToken);
+            await _tiantangService.Signin();
             return new OkResult();
         }
 
         [HttpPost]
-        public async Task<ActionResult> Harvest(CancellationToken cancellationToken)
+        public async Task<ActionResult> Harvest()
         {
-            await _tiantangService.Harvest(cancellationToken);
+            await _tiantangService.Harvest();
             return new OkResult();
         }
 
         [HttpPost]
-        public async Task<ActionResult> CheckAndApplyElectricBillBonus(CancellationToken cancellationToken)
+        public async Task<ActionResult> CheckAndApplyElectricBillBonus()
         {
-            await _tiantangService.CheckAndApplyElectricBillBonus(cancellationToken);
+            await _tiantangService.CheckAndApplyElectricBillBonus();
             return new OkResult();
         }
 
         [HttpPost]
-        public async Task<ActionResult> RefreshLogin(CancellationToken cancellationToken)
+        public async Task<ActionResult> RefreshLogin()
         {
-            await _tiantangService.RefreshLogin(cancellationToken);
+            await _tiantangService.RefreshLogin();
             return new OkResult();
         }
     }

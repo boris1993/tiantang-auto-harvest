@@ -30,7 +30,7 @@ namespace tiantang_auto_harvest.Jobs
             }
             
             _logger.LogInformation("将执行激活电费卡定时任务");
-            await tiantangService.CheckAndApplyElectricBillBonus(context.CancellationToken);
+            await tiantangService.CheckAndApplyElectricBillBonus();
         }
     }
 }

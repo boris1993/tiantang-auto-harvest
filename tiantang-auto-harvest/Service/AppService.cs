@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -102,13 +101,8 @@ namespace tiantang_auto_harvest.Service
             await _defaultDbContext.SaveChangesAsync();
         }
 
-        public async Task RefreshLogin(CancellationToken cancellationToken)
+        public async Task RefreshLogin()
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                throw new TaskCanceledException("RefreshLogin被cancel", null, cancellationToken);
-            }
-            
             var tiantangLoginInfo = _defaultDbContext.TiantangLoginInfo.SingleOrDefault();
             if (tiantangLoginInfo == null)
             {
@@ -118,13 +112,14 @@ namespace tiantang_auto_harvest.Service
             _logger.LogInformation("正在刷新{PhoneNumber}的token", tiantangLoginInfo.PhoneNumber);
 
             var unionId = tiantangLoginInfo.UnionId;
-            var responseJson = await _tiantangRemoteCallService.RefreshLogin(unionId, cancellationToken);
+            var responseJson = await _tiantangRemoteCallService.RefreshLogin(unionId);
 
             var newToken = responseJson.RootElement.GetProperty("data").GetProperty("token").GetString();
             tiantangLoginInfo.AccessToken = newToken;
             _logger.LogInformation("新token是 {NewToken}", newToken);
 
-            await _defaultDbContext.SaveChangesAsync(cancellationToken);
+            await _defaultDbContext.SaveChangesAsync();
+            await _defaultDbContext.SaveChangesAsync();
         }
 
         public void UpdateNotificationKeys(SetNotificationChannelRequest setNotificationChannelRequest)
