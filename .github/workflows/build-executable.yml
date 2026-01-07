@@ -1,4 +1,4 @@
-﻿name: Build and publish executable
+name: Build and publish executable
 
 on:
   push:
@@ -49,7 +49,7 @@ jobs:
         run: tar cvzf linux-arm-v7.tar.gz linux-arm-v7
         
       - name: Upload artifact for Windows x64
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with: 
           name: win-x64-${{ github.sha }}
           path: tiantang-auto-harvest/bin/Release/win-x64.zip
@@ -57,7 +57,7 @@ jobs:
           retention-days: 7
      
       - name: Upload artifact for Linux x64
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: linux-x64-${{ github.sha }}
           path: tiantang-auto-harvest/bin/Release/linux-x64.tar.gz
@@ -65,7 +65,7 @@ jobs:
           retention-days: 7
      
       - name: Upload artifact for Linux arm64
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: linux-arm64-${{ github.sha }}
           path: tiantang-auto-harvest/bin/Release/linux-arm64.tar.gz
@@ -73,7 +73,7 @@ jobs:
           retention-days: 7
      
       - name: Upload artifact for Linux arm v7
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: linux-arm-v7-${{ github.sha }}
           path: tiantang-auto-harvest/bin/Release/linux-arm-v7.tar.gz
