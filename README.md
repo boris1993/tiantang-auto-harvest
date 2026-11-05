@@ -76,8 +76,6 @@ docker run -it --rm --entrypoint /bin/bash boris1993/tiantang-auto-harvest:lates
 
 如果你觉得这个工具好用，那么可不可以填一下我的邀请码`804744`，互惠互利？
 
-![赞赏码](https://sat02pap001files.storage.live.com/y4mc9DXtRErXTWqB4T-e4MbNjh8grVux4vhbiUog6R_WOAWuI-pC2YbUxXi4-r5b-EaskCfAmnq7jLniVtelO423EbVYODuQX24u_QGlCzTj2yiiu1gUhCpc1bAH5srf2Tm5uC3eqESMz9ziyfkQKAUOhdXNNLTsvnWDm5rgBXjHM5eTyp1A3bcnXKHBRtdAFax?width=256&height=256&cropmode=none)
-
 # 许可协议
 
 该项目遵照[MIT License](LICENSE)开放源代码。
